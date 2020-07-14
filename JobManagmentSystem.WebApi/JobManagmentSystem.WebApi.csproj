@@ -6,6 +6,7 @@
 
     <ItemGroup>
       <ProjectReference Include="..\JobManagmentSystem.Application\JobManagmentSystem.Application.csproj" />
+      <ProjectReference Include="..\JobManagmentSystem.FileStorage\JobManagmentSystem.FileStorage.csproj" />
     </ItemGroup>
 
 

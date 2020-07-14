@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using JobManagmentSystem.FileStorage.Tools;
 using JobManagmentSystem.Scheduler.Tools;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -26,6 +27,8 @@ namespace JobManagmentSystem.WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddScheduler();
+            services.AddJobsFileStorage();
+
             services.AddControllers();
         }
 
