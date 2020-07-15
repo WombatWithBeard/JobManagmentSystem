@@ -14,10 +14,6 @@ namespace FileCopyJobService
             _parameters = JsonSerializer.Deserialize<FileCopyParameters>(parameters.ToString());
         }
 
-        public FileCopyJob()
-        {
-        }
-
         public Task Invoke(object? state)
         {
             // throw new Exception("Я пизданулось");

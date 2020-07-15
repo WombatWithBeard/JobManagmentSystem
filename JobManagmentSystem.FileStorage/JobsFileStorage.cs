@@ -11,48 +11,58 @@ namespace JobManagmentSystem.FileStorage
 {
     public class JobsFileStorage : IPersistStorage
     {
+        private readonly string _fileName;
+        private string _path;
+
+        public JobsFileStorage(string fileName = @"\jobs.ndjson")
+        {
+            _fileName = fileName;
+            _path = Directory.GetCurrentDirectory() + _fileName;
+        }
+
         public async Task SaveJobAsync(Job job)
         {
-            var jobs = await File.ReadAllLinesAsync(Directory.GetCurrentDirectory() + @"\jobs.ndjson");
+            if (File.Exists(_path))
+            {
+                var jobs = await File.ReadAllLinesAsync(_path);
 
-            if (jobs.Any(j => j.Contains(job.Key)))
-                throw new Exception($"Key: {job.Key} already exists");
+                if (jobs.Any(j => j.Contains(job.Key)))
+                    throw new Exception($"Key: {job.Key} already exists");
+            }
 
-            await File.AppendAllTextAsync(Directory.GetCurrentDirectory() + @"\jobs.ndjson",
-                JsonSerializer.Serialize(job));
+            await File.AppendAllTextAsync(Directory.GetCurrentDirectory() + _fileName, JsonSerializer.Serialize(job));
         }
 
         public async Task DeleteJobAsync(string key)
         {
-            var jobs = await File.ReadAllLinesAsync(Directory.GetCurrentDirectory() + @"\jobs.ndjson");
+            if (File.Exists(_path))
+            {
+                var jobs = await File.ReadAllLinesAsync(_path);
 
-            if (!jobs.Any(j => j.Contains(key)))
-                throw new Exception($"Key: {key} not exists");
-            
-            var newJobs = jobs.Where(j => !j.Contains(key));
+                if (!jobs.Any(j => j.Contains(key)))
+                    throw new Exception($"Key: {key} not exists");
 
-            await File.WriteAllTextAsync(Directory.GetCurrentDirectory() + @"\jobs.ndjson",
-                JsonSerializer.Serialize(newJobs));
+                var newJobs = jobs.Where(j => !j.Contains(key));
+
+                await File.WriteAllTextAsync(_path, JsonSerializer.Serialize(newJobs));
+            }
         }
 
         public async Task<IEnumerable<string>> GetJobsAsync()
         {
-            return await File.ReadAllLinesAsync(Directory.GetCurrentDirectory() + @"\jobs.ndjson");
+            if (File.Exists(_path))
+                return await File.ReadAllLinesAsync(_path);
+
+            return new List<string>();
         }
 
         public async Task<string> GetJobAsync(string key)
         {
-            var jobs = await File.ReadAllLinesAsync(Directory.GetCurrentDirectory() + @"\jobs.ndjson");
+            if (!File.Exists(_path)) return "";
 
-            try
-            {
-                return jobs.FirstOrDefault(j => j.Contains(key));
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
+            var jobs = await File.ReadAllLinesAsync(_path);
+
+            return jobs.FirstOrDefault(j => j.Contains(key));
         }
     }
 }
