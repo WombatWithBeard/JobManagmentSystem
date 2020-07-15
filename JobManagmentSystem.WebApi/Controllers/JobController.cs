@@ -1,6 +1,5 @@
 ﻿using JobManagmentSystem.Application;
 using JobManagmentSystem.Application.CRUD;
-using JobManagmentSystem.Scheduler;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -35,6 +34,12 @@ namespace JobManagmentSystem.WebApi.Controllers
             var success = deleteJob.Delete(key);
 
             return Ok(success);
+        }
+
+        [HttpPost]
+        public IActionResult ReSchedule([FromBody] JobDto dto)
+        {
+            return Ok();
         }
 
         [HttpGet("/{key}")]

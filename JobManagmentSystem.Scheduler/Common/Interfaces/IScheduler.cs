@@ -1,12 +1,9 @@
-﻿using System.Threading;
-using System.Threading.Tasks;
-
-namespace JobManagmentSystem.Scheduler.Common.Interfaces
+﻿namespace JobManagmentSystem.Scheduler.Common.Interfaces
 {
     public interface IScheduler
     {
-        bool DeleteJobById(string key);
-        bool DeleteAllJobs();
-        bool AddJob(Job job);
+        (bool success, string message) DeleteJobById(string key);
+        (bool success, string message) DeleteAllJobs();
+        (bool success, string message) AddJob(Job job);
     }
 }

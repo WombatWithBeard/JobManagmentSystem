@@ -1,61 +1,62 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading;
-using System.Threading.Tasks;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace JobManagmentSystem.Scheduler
 {
     public class SchedulerService : IScheduler
     {
+        private readonly ILogger<SchedulerService> _logger;
         private readonly Dictionary<string, Timer> _timers;
-        // private static SchedulerService _instance;
 
-        public SchedulerService()
+        public SchedulerService(ILogger<SchedulerService> logger)
         {
+            _logger = logger;
             _timers = new Dictionary<string, Timer>();
         }
 
-        // public static SchedulerService Instance => _instance ??= new SchedulerService();
-        public bool AddJob(Job job)
+        public (bool, string) AddJob(Job job)
         {
             try
             {
-                _timers.Add(job.Key, job.Timer);
-                return true;
+                var timer = new Timer(s => job.Task.Invoke(s), job.Task, job.Schedule.WhenStart, job.Schedule.Period);
+                _timers.Add(job.Key, timer);
+                return (true, $"Job {job.Key} was successfully scheduled");
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                return false;
+                _logger.LogError(e.Message);
+                return (false, e.Message);
             }
         }
 
-        public bool DeleteJobById(string key)
+        public (bool, string) DeleteJobById(string key)
         {
             try
             {
                 _timers.Remove(key);
-                return true;
+                return (true, $"Job {key} was successfully unscheduled");
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                return false;
+                _logger.LogError(e.Message);
+                return (false, e.Message);
             }
         }
 
-        public bool DeleteAllJobs()
+        public (bool, string) DeleteAllJobs()
         {
             try
             {
                 _timers.Clear();
-                return true;
+                return (true, "All job was successfully unscheduled");
             }
             catch (Exception e)
             {
-                Console.WriteLine(e);
-                return false;
+                _logger.LogError(e.Message);
+                return (false, e.Message);
             }
         }
     }
