@@ -29,7 +29,8 @@ namespace JobManagmentSystem.FileStorage
                 if (jobs.Any(j => j.Contains(job.Key))) return (false, "Key is already exists");
             }
 
-            await File.AppendAllTextAsync(Directory.GetCurrentDirectory() + _fileName, JsonSerializer.Serialize(job));
+            await File.AppendAllLinesAsync(Directory.GetCurrentDirectory() + _fileName,
+                new[] {JsonSerializer.Serialize(job)});
 
             return (true, "Job saved successfully");
         }
@@ -44,7 +45,7 @@ namespace JobManagmentSystem.FileStorage
 
             var newJobs = jobs.Where(j => !j.Contains(key));
 
-            await File.WriteAllTextAsync(_path, JsonSerializer.Serialize(newJobs));
+            await File.WriteAllLinesAsync(_path, new[] {JsonSerializer.Serialize(newJobs)});
 
             return (true, "Key successfully deleted");
         }

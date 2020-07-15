@@ -54,16 +54,18 @@ namespace JobManagmentSystem.WebApi.Controllers
         public async Task<IActionResult> Get([FromBody] string key)
         {
             var getJob = await _management.GetJobAsync(key);
+            if (!getJob.success) return NotFound(getJob.message);
 
-            return Ok(JsonSerializer.Serialize(getJob));
+            return Ok(JsonSerializer.Serialize(getJob.job));
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
             var jobsList = await _management.GetJobsListAsync();
+            if (!jobsList.success) return NotFound(jobsList.message);
 
-            return Ok(JsonSerializer.Serialize(jobsList));
+            return Ok(JsonSerializer.Serialize(jobsList.jobs));
         }
     }
 }
