@@ -1,12 +1,14 @@
-﻿using JobManagmentSystem.Scheduler.Common.Enums;
+﻿using System;
+using JobManagmentSystem.Scheduler.Common.Enums;
 
 namespace JobManagmentSystem.Application
 {
     public class JobDto
     {
         public string TaskName { get; set; }
-        public IntervalsEnum Interval { get; set; }
-        public double TimeStart { get; set; }
+        public int IntervalType { get; set; }
+        public double Interval { get; set; }
+        public string TimeStart { get; set; }
         public object TaskParameters { get; set; }
     }
 }

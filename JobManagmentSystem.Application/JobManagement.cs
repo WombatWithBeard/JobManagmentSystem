@@ -26,7 +26,9 @@ namespace JobManagmentSystem.Application
             {
                 var task = _factory.Create(dto.TaskName, dto.TaskParameters);
 
-                var job = new Job(task, dto.TimeStart, (int) dto.Interval, dto.TaskName); //TODO: interval
+                //TODO: interval
+                var job = new Job(task, Convert.ToDateTime(dto.TimeStart), dto.Interval, dto.IntervalType,
+                    dto.TaskName);
 
                 return await _schedulerAndPersistence.CreateJobAsync(job);
             }
@@ -56,7 +58,8 @@ namespace JobManagmentSystem.Application
             {
                 var task = _factory.Create(dto.TaskName, dto.TaskParameters);
 
-                var job = new Job(task, dto.TimeStart, (int) dto.Interval, dto.TaskName); //TODO: interval
+                var job = new Job(task, Convert.ToDateTime(dto.TimeStart), dto.Interval, dto.IntervalType,
+                    dto.TaskName); //TODO: interval
 
                 return await _schedulerAndPersistence.ReScheduleJobAsync(job);
             }

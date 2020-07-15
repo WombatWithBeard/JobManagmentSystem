@@ -6,6 +6,7 @@
         Minutes,
         Hours,
         Daily,
-        Monthly
+        Monthly,
+        Yearly
     }
 }

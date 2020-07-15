@@ -1,4 +1,4 @@
-﻿using System.Text.Json;
+﻿using System;
 using FileCopyJobService;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 
@@ -9,7 +9,7 @@ namespace JobManagmentSystem.Application
         public IJobTask Create(string name, object dtoTaskParameters) => name switch
         {
             "FileCopy" => new FileCopyJob(dtoTaskParameters),
-            _ => new FileCopyJob(JsonSerializer.Serialize(new {From = "Default From", To = "Default To"}))
+            _ => throw new Exception("Task with this alias was not found")
         };
     }
 }
