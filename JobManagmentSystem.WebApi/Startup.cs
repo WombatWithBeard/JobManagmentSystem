@@ -1,5 +1,7 @@
-using JobManagmentSystem.FileStorage.Tools;
-using JobManagmentSystem.Scheduler.Tools;
+using JobManagmentSystem.Application;
+using JobManagmentSystem.FileStorage;
+using JobManagmentSystem.Scheduler;
+using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -19,8 +21,11 @@ namespace JobManagmentSystem.WebApi
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddScheduler();
-            services.AddJobsFileStorage();
+            services.AddSingleton<IScheduler, SchedulerService>();
+            services.AddScoped<IPersistStorage, JobsFileStorage>();
+            services.AddScoped<ISchedulerAndPersistence, SchedulerAndPersistService>();
+            services.AddScoped<TaskFactory>();
+            services.AddScoped<JobManagement>();
 
             services.AddControllers();
         }

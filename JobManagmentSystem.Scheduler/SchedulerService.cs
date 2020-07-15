@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.Extensions.Logging;
@@ -36,6 +37,7 @@ namespace JobManagmentSystem.Scheduler
         {
             try
             {
+                _timers.First(t => t.Key == key).Value.Dispose();
                 _timers.Remove(key);
                 return (true, $"Job {key} was successfully unscheduled");
             }
@@ -50,6 +52,11 @@ namespace JobManagmentSystem.Scheduler
         {
             try
             {
+                foreach (var timersValue in _timers.Values)
+                {
+                    timersValue.Dispose();
+                }
+
                 _timers.Clear();
                 return (true, "All job was successfully unscheduled");
             }

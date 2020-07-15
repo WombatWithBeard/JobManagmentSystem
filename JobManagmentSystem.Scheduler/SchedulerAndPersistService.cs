@@ -51,11 +51,12 @@ namespace JobManagmentSystem.Scheduler
                 var deleteJob = await _storage.DeleteJobAsync(key);
                 if (!deleteJob.success) return (deleteJob.success, deleteJob.message);
 
-                var unscheduledJob = _scheduler.DeleteJobById(key);
+                //TODO: check for exist in schedule and return not exists if false in both?
 
+                var unscheduledJob = _scheduler.DeleteJobById(key);
                 if (unscheduledJob.success) return (unscheduledJob.success, unscheduledJob.message);
 
-                return (unscheduledJob.success, "Произошла ошибка при удалении");
+                return (unscheduledJob.success, "Error while try to unschedule job");
             }
             catch (Exception e)
             {
@@ -68,7 +69,27 @@ namespace JobManagmentSystem.Scheduler
         {
             try
             {
-                throw new NotImplementedException();
+                var deleteJob = await _storage.DeleteJobAsync(job.Key);
+                if (!deleteJob.success)
+                {
+                    if (deleteJob.message != "Key not exists" || deleteJob.message != "File not exists")
+                    {
+                        return (deleteJob.success, deleteJob.message);
+                    }
+                }
+
+                var unscheduledJob = _scheduler.DeleteJobById(job.Key);
+                if (!unscheduledJob.success) return (unscheduledJob.success, unscheduledJob.message);
+
+                var saveJob = await _storage.SaveJobAsync(job);
+                if (!saveJob.success) return (saveJob.success, saveJob.message);
+
+                var addJob = _scheduler.AddJob(job);
+                if (addJob.success) return (addJob.success, addJob.message);
+
+                //TODO: Again
+
+                return (addJob.success, addJob.message);
             }
             catch (Exception e)
             {

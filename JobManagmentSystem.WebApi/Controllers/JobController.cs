@@ -1,6 +1,5 @@
-﻿using JobManagmentSystem.Application;
-using JobManagmentSystem.Application.CRUD;
-using JobManagmentSystem.Scheduler.Common.Interfaces;
+﻿using System.Threading.Tasks;
+using JobManagmentSystem.Application;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JobManagmentSystem.WebApi.Controllers
@@ -9,55 +8,61 @@ namespace JobManagmentSystem.WebApi.Controllers
     [Route("api/[controller]/[action]")]
     public class JobController : ControllerBase
     {
-        private readonly IScheduler _scheduler;
-        private readonly IPersistStorage _storage;
+        private readonly JobManagement _management;
 
-        public JobController(IScheduler scheduler, IPersistStorage storage)
+        public JobController(JobManagement management)
         {
-            _scheduler = scheduler;
-            _storage = storage;
+            _management = management;
         }
 
         [HttpPost]
-        public IActionResult Create([FromBody] JobDto dto)
+        public async Task<IActionResult> Create([FromBody] JobDto dto)
         {
-            var createJob = new CreateJob(_scheduler, _storage);
-            var success = createJob.Create(dto);
+            var createJob = await _management.CreateJobAsync(dto);
 
-            return Ok(success);
+            if (!createJob.success)
+            {
+                //TODO: what about this?
+            }
+
+            return Ok(createJob);
         }
 
         [HttpDelete]
-        public IActionResult Delete([FromBody] string key)
+        public async Task<IActionResult> Delete([FromBody] string key)
         {
-            var deleteJob = new DeleteJob(_scheduler, _storage);
-            var success = deleteJob.Delete(key);
+            var deleteJob = await _management.DeleteJobAsync(key);
 
-            return Ok(success);
+            return Ok(deleteJob);
         }
 
         [HttpPost]
-        public IActionResult ReSchedule([FromBody] JobDto dto)
+        public async Task<IActionResult> ReSchedule([FromBody] JobDto dto)
         {
-            return Ok();
+            var scheduleJob = await _management.ReScheduleJobAsync(dto);
+
+            if (!scheduleJob.success)
+            {
+                //TODO: what about this?
+            }
+
+            return Ok(scheduleJob);
         }
 
         [HttpGet("/{key}")]
-        public IActionResult Get([FromBody] string key)
+        public async Task<IActionResult> Get([FromBody] string key)
         {
-            var getJob = new GetJob(_storage);
-            var job = getJob.GetJobById(key);
+            var getJob = await _management.GetJobAsync(key);
 
-            return Ok(job);
+            return Ok(getJob);
         }
 
         [HttpGet]
-        public IActionResult GetAll([FromBody] JobDto dto)
+        public async Task<IActionResult> GetAll()
         {
-            var jobsList = new GetJobsList(_storage);
-            var jobs = jobsList.GetJobs();
+            var jobsList = await _management.GetJobsListAsync();
 
-            return Ok(jobs);
+            return Ok(jobsList);
         }
     }
 }
