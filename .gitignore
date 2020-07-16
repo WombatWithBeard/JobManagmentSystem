@@ -3,4 +3,7 @@ obj/
 /packages/
 /TestClient/TestClient.csproj
 JobManagmentSystem.WebApi/logs/**
+JobManagmentSystem/.vs/**
+JobManagmentSystem/.idea/**
+JobManagmentSystem/JobManagmentSystem.Scheduler/.idea/**
 *.ndjson
