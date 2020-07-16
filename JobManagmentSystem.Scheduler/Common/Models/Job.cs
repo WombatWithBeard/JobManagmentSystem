@@ -2,7 +2,7 @@
 using System.Text.Json.Serialization;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 
-namespace JobManagmentSystem.Scheduler.Common
+namespace JobManagmentSystem.Scheduler.Common.Models
 {
     public class Job
     {

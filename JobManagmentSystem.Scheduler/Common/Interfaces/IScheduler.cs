@@ -1,4 +1,6 @@
-﻿namespace JobManagmentSystem.Scheduler.Common.Interfaces
+﻿using JobManagmentSystem.Scheduler.Common.Models;
+
+namespace JobManagmentSystem.Scheduler.Common.Interfaces
 {
     public interface IScheduler
     {

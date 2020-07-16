@@ -1,12 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading.Tasks;
-using JobManagmentSystem.Scheduler;
-using JobManagmentSystem.Scheduler.Common;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
+using JobManagmentSystem.Scheduler.Common.Models;
 using Microsoft.Extensions.Logging;
 
 namespace JobManagmentSystem.Application

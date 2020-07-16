@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Threading.Tasks;
-using JobManagmentSystem.Scheduler.Common;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
+using JobManagmentSystem.Scheduler.Common.Models;
 using Microsoft.Extensions.Logging;
 
 namespace JobManagmentSystem.Scheduler

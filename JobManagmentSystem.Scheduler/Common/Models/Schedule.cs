@@ -1,7 +1,7 @@
 ﻿using System;
 using JobManagmentSystem.Scheduler.Common.Enums;
 
-namespace JobManagmentSystem.Scheduler
+namespace JobManagmentSystem.Scheduler.Common.Models
 {
     public class Schedule
     {

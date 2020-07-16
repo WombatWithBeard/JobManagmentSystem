@@ -2,9 +2,8 @@
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using JobManagmentSystem.Scheduler;
-using JobManagmentSystem.Scheduler.Common;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
+using JobManagmentSystem.Scheduler.Common.Models;
 
 namespace JobManagmentSystem.FileStorage
 {
@@ -27,13 +26,13 @@ namespace JobManagmentSystem.FileStorage
             {
                 var jobs = await File.ReadAllLinesAsync(_path);
 
-                if (jobs.Any(j => j.Contains(job.Key))) return (false, "Key is already exists");
+                if (jobs.Any(j => j.Contains(job.Key))) return (false, $"Key {job.Key} already exists");
             }
 
             await File.AppendAllLinesAsync(Directory.GetCurrentDirectory() + _fileName,
                 new[] {JsonSerializer.Serialize(job)});
 
-            return (true, "Job saved successfully");
+            return (true, $"Job {job.Key} saved successfully");
         }
 
         public async Task<(bool success, string message)> DeleteJobAsync(string key)
@@ -42,13 +41,13 @@ namespace JobManagmentSystem.FileStorage
 
             var jobs = await File.ReadAllLinesAsync(_path);
 
-            if (!jobs.Any(j => j.Contains(key))) return (false, "Key not exists");
+            if (!jobs.Any(j => j.Contains(key))) return (false, $"Key {key} not exists");
 
             var newJobs = jobs.Where(j => !j.Contains(key));
 
             await File.WriteAllLinesAsync(_path, newJobs);
 
-            return (true, "Key successfully deleted");
+            return (true, $"Key {key} successfully deleted");
         }
 
         public async Task<(bool success, string message, string[] result)> GetJobsAsync()
