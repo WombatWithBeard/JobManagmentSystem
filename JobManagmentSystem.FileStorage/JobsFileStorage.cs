@@ -3,6 +3,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using JobManagmentSystem.Scheduler;
+using JobManagmentSystem.Scheduler.Common;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 
 namespace JobManagmentSystem.FileStorage
@@ -45,7 +46,7 @@ namespace JobManagmentSystem.FileStorage
 
             var newJobs = jobs.Where(j => !j.Contains(key));
 
-            await File.WriteAllLinesAsync(_path, new[] {JsonSerializer.Serialize(newJobs)});
+            await File.WriteAllLinesAsync(_path, newJobs);
 
             return (true, "Key successfully deleted");
         }

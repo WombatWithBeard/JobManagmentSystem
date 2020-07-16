@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using JobManagmentSystem.FileStorage;
 using JobManagmentSystem.Scheduler;
+using JobManagmentSystem.Scheduler.Common;
 using JobManagmentSystem.Scheduler.Common.Enums;
 using Xunit;
 

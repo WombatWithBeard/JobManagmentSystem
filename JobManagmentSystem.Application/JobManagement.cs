@@ -1,7 +1,11 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using JobManagmentSystem.Scheduler;
+using JobManagmentSystem.Scheduler.Common;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -27,9 +31,8 @@ namespace JobManagmentSystem.Application
             {
                 var task = _factory.Create(dto.TaskName, dto.TaskParameters);
 
-                //TODO: interval
                 var job = new Job(task, Convert.ToDateTime(dto.TimeStart), dto.Interval, dto.IntervalType,
-                    dto.TaskName);
+                    dto.TaskName, dto.TaskParameters);
 
                 return await _schedulerAndPersistence.CreateJobAsync(job);
             }
@@ -60,9 +63,42 @@ namespace JobManagmentSystem.Application
                 var task = _factory.Create(dto.TaskName, dto.TaskParameters);
 
                 var job = new Job(task, Convert.ToDateTime(dto.TimeStart), dto.Interval, dto.IntervalType,
-                    dto.TaskName); //TODO: interval
+                    dto.TaskName, dto.TaskParameters);
 
                 return await _schedulerAndPersistence.ReScheduleJobAsync(job);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw;
+            }
+        }
+
+        public async Task<Dictionary<string, (bool success, string message)>> ReScheduleAllJobsAsync()
+        {
+            try
+            {
+                var jobsListAsync = await _schedulerAndPersistence.GetJobsListAsync();
+
+                if (!jobsListAsync.success) throw new Exception(jobsListAsync.message);
+
+                if (jobsListAsync.success && jobsListAsync.jobs.Length <= 0) throw new Exception("No data available");
+
+                //TODO: Need mapping
+                var dict = new Dictionary<string, (bool success, string message)>();
+
+                foreach (var jobS in jobsListAsync.jobs)
+                {
+                    var job = JsonSerializer.Deserialize<Job>(jobS);
+
+                    job.Task = _factory.Create(job.Name, job.TaskParameters);
+
+                    var reScheduleResult = await _schedulerAndPersistence.ReScheduleJobAsync(job);
+
+                    dict.Add(job.Key, reScheduleResult);
+                }
+
+                return dict;
             }
             catch (Exception e)
             {

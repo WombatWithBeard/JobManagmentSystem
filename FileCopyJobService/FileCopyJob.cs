@@ -3,7 +3,6 @@ using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
-using Microsoft.Extensions.Logging;
 
 namespace FileCopyJobService
 {

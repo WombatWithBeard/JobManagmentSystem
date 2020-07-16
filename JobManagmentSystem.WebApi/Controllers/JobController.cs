@@ -40,6 +40,7 @@ namespace JobManagmentSystem.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> ReSchedule([FromBody] JobDto dto)
         {
+            var rescheduledJobsResults = await _management.ReScheduleAllJobsAsync();
             var scheduleJob = await _management.ReScheduleJobAsync(dto);
 
             if (!scheduleJob.success)

@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using JobManagmentSystem.Scheduler.Common;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -22,8 +23,14 @@ namespace JobManagmentSystem.Scheduler
         {
             try
             {
-                var timer = new Timer(s => job.Task.Invoke(s), job.Task, job.Schedule.WhenStart, job.Schedule.Period);
+                if (_timers.ContainsKey(job.Key)) return (false, $"Job {job.Key} already exists");
+
+                var timer = new Timer(s => job.Task.Invoke(s),
+                    job.Task,
+                    job.Schedule.GetStartJobTimeSpan(),
+                    job.Schedule.GetPeriodJobTimeSpan());
                 _timers.Add(job.Key, timer);
+
                 return (true, $"Job {job.Key} was successfully scheduled");
             }
             catch (Exception e)
@@ -37,9 +44,17 @@ namespace JobManagmentSystem.Scheduler
         {
             try
             {
-                _timers.First(t => t.Key == key).Value.Dispose();
-                _timers.Remove(key);
-                return (true, $"Job {key} was successfully unscheduled");
+                if (_timers.Count <= 0) return (true, "Scheduler is empty");
+
+                if (_timers.ContainsKey(key))
+                {
+                    _timers.First(t => t.Key == key).Value?.Dispose();
+                    _timers.Remove(key);
+
+                    return (true, $"Job {key} was successfully unscheduled");
+                }
+
+                return (true, "Job does not exist");
             }
             catch (Exception e)
             {
@@ -52,12 +67,12 @@ namespace JobManagmentSystem.Scheduler
         {
             try
             {
-                foreach (var timersValue in _timers.Values)
-                {
-                    timersValue.Dispose();
-                }
+                if (_timers.Count <= 0) return (true, "Scheduler is empty");
+
+                foreach (var timersValue in _timers.Values) timersValue?.Dispose();
 
                 _timers.Clear();
+
                 return (true, "All job was successfully unscheduled");
             }
             catch (Exception e)

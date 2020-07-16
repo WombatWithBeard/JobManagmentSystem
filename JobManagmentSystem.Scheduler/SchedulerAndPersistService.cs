@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
+using JobManagmentSystem.Scheduler.Common;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.Extensions.Logging;
 

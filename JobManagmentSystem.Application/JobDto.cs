@@ -1,7 +1,4 @@
-﻿using System;
-using JobManagmentSystem.Scheduler.Common.Enums;
-
-namespace JobManagmentSystem.Application
+﻿namespace JobManagmentSystem.Application
 {
     public class JobDto
     {

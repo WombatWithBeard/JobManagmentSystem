@@ -1,4 +1,3 @@
-using System;
 using JobManagmentSystem.Application;
 using JobManagmentSystem.FileStorage;
 using JobManagmentSystem.Scheduler;
@@ -41,8 +40,6 @@ namespace JobManagmentSystem.WebApi
             app.UseHttpsRedirection();
 
             app.UseRouting();
-
-            app.UseAuthorization();
 
             app.UseEndpoints(endpoints => { endpoints.MapControllers(); });
         }

@@ -5,35 +5,41 @@ namespace JobManagmentSystem.Scheduler
 {
     public class Schedule
     {
-        public Schedule(DateTime startDate, int intervalType, double interval)
+        public DateTime StartDate { get; set; }
+        public int IntervalType { get; set; }
+        public double Interval { get; set; }
+
+        public Schedule()
         {
-            WhenStart = GetStartJobTimeSpan(startDate);
-            Period = GetPeriodJobTimeSpan(intervalType, interval);
         }
 
-        private TimeSpan GetPeriodJobTimeSpan(int intervalType, double interval) => (IntervalsEnum) intervalType switch
+        public Schedule(DateTime startDate, int intervalType, double interval)
         {
-            IntervalsEnum.Seconds => TimeSpan.FromSeconds(interval),
-            IntervalsEnum.Minutes => TimeSpan.FromMinutes(interval),
-            IntervalsEnum.Hours => TimeSpan.FromHours(interval),
-            IntervalsEnum.Daily => TimeSpan.FromDays(interval),
-            IntervalsEnum.Monthly => TimeSpan.FromDays(interval * 30),
-            IntervalsEnum.Yearly => TimeSpan.FromDays(interval * 365),
+            StartDate = startDate;
+            IntervalType = intervalType;
+            Interval = interval;
+        }
+
+        public TimeSpan GetPeriodJobTimeSpan() => (IntervalsEnum) IntervalType switch
+        {
+            IntervalsEnum.Seconds => TimeSpan.FromSeconds(Interval),
+            IntervalsEnum.Minutes => TimeSpan.FromMinutes(Interval),
+            IntervalsEnum.Hours => TimeSpan.FromHours(Interval),
+            IntervalsEnum.Daily => TimeSpan.FromDays(Interval),
+            IntervalsEnum.Monthly => TimeSpan.FromDays(Interval * 30),
+            IntervalsEnum.Yearly => TimeSpan.FromDays(Interval * 365),
             _ => TimeSpan.Zero
         };
 
-        private TimeSpan GetStartJobTimeSpan(DateTime startDate)
+        public TimeSpan GetStartJobTimeSpan()
         {
             var now = DateTime.Now;
-            if (now > startDate) startDate = startDate.AddDays(1);
+            while (now > StartDate) StartDate = StartDate.AddDays(1);
 
-            var timeToGo = startDate - now;
+            var timeToGo = StartDate - now;
             if (timeToGo <= TimeSpan.Zero) timeToGo = TimeSpan.Zero;
 
             return timeToGo;
         }
-
-        public TimeSpan Period { get; }
-        public TimeSpan WhenStart { get; }
     }
 }
