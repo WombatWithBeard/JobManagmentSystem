@@ -8,21 +8,21 @@ using Microsoft.Extensions.Logging;
 
 namespace JobManagmentSystem.Application
 {
-    public class JobManagement
+    public class JobService : IJobService
     {
-        private readonly ISchedulerAndPersistence _schedulerAndPersistence;
+        private readonly IScheduler _scheduler;
         private readonly TaskFactory _factory;
-        private readonly ILogger<JobManagement> _logger;
+        private readonly ILogger<JobService> _logger;
 
-        public JobManagement(ISchedulerAndPersistence schedulerAndPersistence, TaskFactory factory,
-            ILogger<JobManagement> logger)
+        public JobService(IScheduler scheduler, TaskFactory factory,
+            ILogger<JobService> logger)
         {
-            _schedulerAndPersistence = schedulerAndPersistence;
+            _scheduler = scheduler;
             _factory = factory;
             _logger = logger;
         }
 
-        public async Task<(bool success, string message)> CreateJobAsync(JobDto dto)
+        public async Task<(bool success, string message)> ScheduleJobAsync(JobDto dto)
         {
             try
             {
@@ -31,7 +31,7 @@ namespace JobManagmentSystem.Application
                 var job = new Job(task, Convert.ToDateTime(dto.TimeStart), dto.Interval, dto.IntervalType,
                     dto.TaskName, dto.TaskParameters);
 
-                return await _schedulerAndPersistence.CreateJobAsync(job);
+                return await _scheduler.ScheduleJob(job);
             }
             catch (Exception e)
             {
@@ -44,7 +44,7 @@ namespace JobManagmentSystem.Application
         {
             try
             {
-                return await _schedulerAndPersistence.DeleteJobAsync(key);
+                return await _scheduler.DeleteJobAsync(key);
             }
             catch (Exception e)
             {
@@ -53,7 +53,7 @@ namespace JobManagmentSystem.Application
             }
         }
 
-        public async Task<(bool success, string message)> ReScheduleJobAsync(JobDto dto)
+        public async Task<(bool success, string message)> RescheduleJobAsync(JobDto dto)
         {
             try
             {
@@ -62,7 +62,7 @@ namespace JobManagmentSystem.Application
                 var job = new Job(task, Convert.ToDateTime(dto.TimeStart), dto.Interval, dto.IntervalType,
                     dto.TaskName, dto.TaskParameters);
 
-                return await _schedulerAndPersistence.ReScheduleJobAsync(job);
+                return await _scheduler.ReScheduleJobAsync(job);
             }
             catch (Exception e)
             {
@@ -75,7 +75,7 @@ namespace JobManagmentSystem.Application
         {
             try
             {
-                var jobsListAsync = await _schedulerAndPersistence.GetJobsListAsync();
+                var jobsListAsync = await _scheduler.GetJobsListAsync();
 
                 if (!jobsListAsync.success) throw new Exception(jobsListAsync.message);
 
@@ -90,7 +90,7 @@ namespace JobManagmentSystem.Application
 
                     job.Task = _factory.Create(job.Name, job.TaskParameters);
 
-                    var reScheduleResult = await _schedulerAndPersistence.ReScheduleJobAsync(job);
+                    var reScheduleResult = await _scheduler.ReScheduleJobAsync(job);
 
                     dict.Add(job.Key, reScheduleResult);
                 }
@@ -104,11 +104,11 @@ namespace JobManagmentSystem.Application
             }
         }
 
-        public async Task<(bool success, string message, string job)> GetJobAsync(string key)
+        public async Task<(bool success, string message, Job job)> GetScheduledJobByIdAsync(string key)
         {
             try
             {
-                return await _schedulerAndPersistence.GetJobAsync(key);
+                return await _scheduler.GetJobAsync(key);
             }
             catch (Exception e)
             {
@@ -117,11 +117,11 @@ namespace JobManagmentSystem.Application
             }
         }
 
-        public async Task<(bool success, string message, string[] jobs)> GetJobsListAsync()
+        public async Task<(bool success, string message, List<Job> jobs)> GetAllSchedulerJobsAsync()
         {
             try
             {
-                return await _schedulerAndPersistence.GetJobsListAsync();
+                return await _scheduler.GetJobsListAsync();
             }
             catch (Exception e)
             {
@@ -129,5 +129,32 @@ namespace JobManagmentSystem.Application
                 throw;
             }
         }
+        
+        // public async Task<(bool success, string message, string job)> GetJobAsync(string key)
+        // {
+        //     try
+        //     {
+        //         return await _storage.GetJobAsync(key);
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         _logger.LogError(e.Message);
+        //         return (false, e.Message, null);
+        //     }
+        // }
+        //
+        // public async Task<(bool success, string message, string[] jobs)> GetJobsListAsync()
+        // {
+        //     try
+        //     {
+        //         return await _storage.GetJobsAsync();
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         _logger.LogError(e.Message);
+        //         return (false, e.Message, null);
+        //     }
+        // }
     }
 }
+

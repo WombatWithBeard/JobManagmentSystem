@@ -17,10 +17,10 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
         public CreateJobUnitTests()
         {
             _jobMaker = new TestJobMaker();
-            _scheduler = new SchedulerService(NullLogger<SchedulerService>.Instance);
+            _scheduler = new JobManagmentSystem.Scheduler.Scheduler(NullLogger<JobManagmentSystem.Scheduler.Scheduler>.Instance);
             _storage = new JobsFileStorage();
-            _schedulerAndPersistService = new SchedulerAndPersistService(_scheduler, _storage,
-                NullLogger<SchedulerAndPersistService>.Instance);
+            _schedulerAndPersistService = new PersistScheduler(_scheduler, _storage,
+                NullLogger<PersistScheduler>.Instance);
         }
 
         [Fact]
@@ -44,7 +44,7 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
             var job = _jobMaker.CreateTestJob();
 
             //Act
-            _scheduler.AddJob(job);
+            _scheduler.ScheduleJob(job);
             var (success, message) = await _schedulerAndPersistService.CreateJobAsync(job);
 
             //Assert

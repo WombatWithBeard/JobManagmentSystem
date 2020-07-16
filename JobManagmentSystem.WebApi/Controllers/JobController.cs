@@ -9,17 +9,17 @@ namespace JobManagmentSystem.WebApi.Controllers
     [Route("api/[controller]/[action]")]
     public class JobController : ControllerBase
     {
-        private readonly JobManagement _management;
+        private readonly JobService _service;
 
-        public JobController(JobManagement management)
+        public JobController(JobService service)
         {
-            _management = management;
+            _service = service;
         }
 
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] JobDto dto)
         {
-            var createJob = await _management.CreateJobAsync(dto);
+            var createJob = await _service.ScheduleJobAsync(dto);
 
             if (!createJob.success)
             {
@@ -32,7 +32,7 @@ namespace JobManagmentSystem.WebApi.Controllers
         [HttpDelete]
         public async Task<IActionResult> Delete([FromBody] string key)
         {
-            var deleteJob = await _management.DeleteJobAsync(key);
+            var deleteJob = await _service.DeleteJobAsync(key);
 
             return Ok(JsonSerializer.Serialize(deleteJob));
         }
@@ -40,7 +40,7 @@ namespace JobManagmentSystem.WebApi.Controllers
         [HttpPost]
         public async Task<IActionResult> ReSchedule([FromBody] JobDto dto)
         {
-            var scheduleJob = await _management.ReScheduleJobAsync(dto);
+            var scheduleJob = await _service.RescheduleJobAsync(dto);
 
             if (!scheduleJob.success)
             {
@@ -53,7 +53,7 @@ namespace JobManagmentSystem.WebApi.Controllers
         [HttpGet("/{key}")]
         public async Task<IActionResult> Get([FromBody] string key)
         {
-            var getJob = await _management.GetJobAsync(key);
+            var getJob = await _service.GetScheduledJobByIdAsync(key);
             if (!getJob.success) return NotFound(getJob.message);
 
             return Ok(JsonSerializer.Serialize(getJob.job));
@@ -62,7 +62,7 @@ namespace JobManagmentSystem.WebApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var jobsList = await _management.GetJobsListAsync();
+            var jobsList = await _service.GetAllSchedulerJobsAsync();
             if (!jobsList.success) return NotFound(jobsList.message);
 
             return Ok(JsonSerializer.Serialize(jobsList.jobs));

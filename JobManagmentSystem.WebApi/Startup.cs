@@ -21,11 +21,11 @@ namespace JobManagmentSystem.WebApi
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddSingleton<IScheduler, SchedulerService>();
+            services.AddSingleton<Scheduler.Scheduler>();
             services.AddScoped<IPersistStorage, JobsFileStorage>();
-            services.AddScoped<ISchedulerAndPersistence, SchedulerAndPersistService>();
+            services.AddScoped<IScheduler, PersistScheduler>();
             services.AddScoped<TaskFactory>();
-            services.AddScoped<JobManagement>();
+            services.AddScoped<JobService>();
 
             services.AddControllers();
         }

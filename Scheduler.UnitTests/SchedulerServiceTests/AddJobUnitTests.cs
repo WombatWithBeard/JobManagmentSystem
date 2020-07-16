@@ -13,7 +13,7 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
         public AddJobUnitTests()
         {
             _jobMaker = new TestJobMaker();
-            _scheduler = new SchedulerService(NullLogger<SchedulerService>.Instance);
+            _scheduler = new JobManagmentSystem.Scheduler.Scheduler(NullLogger<JobManagmentSystem.Scheduler.Scheduler>.Instance);
         }
 
         [Fact]
@@ -23,7 +23,7 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
             var job = _jobMaker.CreateTestJob();
 
             //Act
-            var (success, message) = _scheduler.AddJob(job);
+            var (success, message) = _scheduler.ScheduleJob(job);
 
             //Assert
             Assert.True(success);
@@ -37,8 +37,8 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
             var job = _jobMaker.CreateTestJob();
 
             //Act
-            _scheduler.AddJob(job);
-            var (success, message) = _scheduler.AddJob(job);
+            _scheduler.ScheduleJob(job);
+            var (success, message) = _scheduler.ScheduleJob(job);
 
             //Assert
             Assert.False(success);

@@ -13,7 +13,7 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
         public DeleteJobUnitTests()
         {
             _jobMaker = new TestJobMaker();
-            _scheduler = new SchedulerService(NullLogger<SchedulerService>.Instance);
+            _scheduler = new JobManagmentSystem.Scheduler.Scheduler(NullLogger<JobManagmentSystem.Scheduler.Scheduler>.Instance);
         }
         
         [Fact]
@@ -23,8 +23,8 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
             var job = _jobMaker.CreateTestJob();
 
             //Act
-            _scheduler.AddJob(job);
-            var (success, message) = _scheduler.DeleteJobById(job.Key);
+            _scheduler.ScheduleJob(job);
+            var (success, message) = _scheduler.UnscheduleJobById(job.Key);
 
             //Assert
             Assert.True(success);
@@ -38,8 +38,8 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
             var job = _jobMaker.CreateTestJob();
 
             //Act
-            _scheduler.AddJob(job);
-            var (success, message) = _scheduler.DeleteJobById("key");
+            _scheduler.ScheduleJob(job);
+            var (success, message) = _scheduler.UnscheduleJobById("key");
 
             //Assert
             Assert.True(success);
@@ -50,7 +50,7 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
         public void DeleteJob_SchedulerIsEmptyResult()
         {
             //Act
-            var (success, message) = _scheduler.DeleteJobById("key");
+            var (success, message) = _scheduler.UnscheduleJobById("key");
 
             //Assert
             Assert.True(success);

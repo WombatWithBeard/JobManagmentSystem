@@ -2,24 +2,25 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Threading.Tasks;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using JobManagmentSystem.Scheduler.Common.Models;
 using Microsoft.Extensions.Logging;
 
 namespace JobManagmentSystem.Scheduler
 {
-    public class SchedulerService : IScheduler
+    public class Scheduler : IScheduler
     {
-        private readonly ILogger<SchedulerService> _logger;
+        private readonly ILogger<Scheduler> _logger;
         private readonly Dictionary<string, Timer> _timers;
 
-        public SchedulerService(ILogger<SchedulerService> logger)
+        public Scheduler(ILogger<Scheduler> logger)
         {
             _logger = logger;
             _timers = new Dictionary<string, Timer>();
         }
 
-        public (bool, string) AddJob(Job job)
+        public async Task<(bool success, string message)> ScheduleJob(Job job)
         {
             try
             {
@@ -29,6 +30,7 @@ namespace JobManagmentSystem.Scheduler
                     job.Task,
                     job.Schedule.GetStartJobTimeSpan(),
                     job.Schedule.GetPeriodJobTimeSpan());
+
                 _timers.Add(job.Key, timer);
 
                 return (true, $"Job {job.Key} was successfully scheduled");
@@ -40,21 +42,24 @@ namespace JobManagmentSystem.Scheduler
             }
         }
 
-        public (bool, string) DeleteJobById(string key)
+        public async Task<(bool success, string message)> RescheduleJob(Job job)
+        {
+            throw new NotImplementedException();
+        }
+
+        public async Task<(bool success, string message)> UnscheduleJobById(string key)
         {
             try
             {
                 if (_timers.Count <= 0) return (true, "Scheduler is empty");
 
-                if (_timers.ContainsKey(key))
-                {
-                    _timers.First(t => t.Key == key).Value?.Dispose();
-                    _timers.Remove(key);
+                if (!_timers.ContainsKey(key)) return (true, $"Job {key} does not scheduled");
+                
+                await _timers.First(pair => pair.Key == key && pair.Value != null).Value.DisposeAsync();
+                _timers.Remove(key);
 
-                    return (true, $"Job {key} was successfully unscheduled");
-                }
+                return (true, $"Job {key} was successfully unscheduled");
 
-                return (true, "Job does not exist");
             }
             catch (Exception e)
             {
@@ -63,13 +68,13 @@ namespace JobManagmentSystem.Scheduler
             }
         }
 
-        public (bool, string) DeleteAllJobs()
+        public async Task<(bool success, string message)> UnscheduleAllJobs()
         {
             try
             {
                 if (_timers.Count <= 0) return (true, "Scheduler is empty");
 
-                foreach (var timersValue in _timers.Values) timersValue?.Dispose();
+                foreach (var timersValue in _timers.Values.Where(t => t != null)) await timersValue.DisposeAsync();
 
                 _timers.Clear();
 
