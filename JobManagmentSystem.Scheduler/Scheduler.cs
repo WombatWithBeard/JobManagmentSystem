@@ -20,7 +20,7 @@ namespace JobManagmentSystem.Scheduler
             _timers = new Dictionary<string, Timer>();
         }
 
-        public async Task<(bool success, string message)> ScheduleJob(Job job)
+        public async Task<(bool success, string message)> ScheduleJobAsync(Job job)
         {
             try
             {
@@ -41,7 +41,7 @@ namespace JobManagmentSystem.Scheduler
             }
         }
 
-        public async Task<(bool success, string message)> RescheduleJob(Job job)
+        public async Task<(bool success, string message)> RescheduleJobAsync(Job job)
         {
             try
             {
@@ -66,7 +66,7 @@ namespace JobManagmentSystem.Scheduler
             }
         }
 
-        public async Task<(bool success, string message)> UnscheduleJobById(string key)
+        public async Task<(bool success, string message)> UnscheduleJobByIdAsync(string key)
         {
             try
             {
@@ -91,7 +91,7 @@ namespace JobManagmentSystem.Scheduler
             }
         }
 
-        public async Task<(bool success, string message)> UnscheduleAllJobs()
+        public async Task<(bool success, string message)> UnscheduleAllJobsAsync()
         {
             try
             {

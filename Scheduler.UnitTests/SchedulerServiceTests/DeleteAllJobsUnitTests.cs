@@ -1,4 +1,5 @@
-﻿using JobManagmentSystem.Scheduler.Common.Interfaces;
+﻿using System.Threading.Tasks;
+using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
@@ -16,13 +17,13 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
         }
 
         [Fact]
-        public async void DeleteJob_ValidResult()
+        public async Task DeleteJob_ValidResult()
         {
             //Act
-            await _scheduler.ScheduleJob(_jobMaker.CreateTestJob());
-            await _scheduler.ScheduleJob(_jobMaker.CreateTestJob());
-            await _scheduler.ScheduleJob(_jobMaker.CreateTestJob());
-            var (success, message) = await _scheduler.UnscheduleAllJobs();
+            await _scheduler.ScheduleJobAsync(_jobMaker.CreateTestJob());
+            await _scheduler.ScheduleJobAsync(_jobMaker.CreateTestJob());
+            await _scheduler.ScheduleJobAsync(_jobMaker.CreateTestJob());
+            var (success, message) = await _scheduler.UnscheduleAllJobsAsync();
 
             //Assert
             Assert.True(success);
@@ -30,10 +31,10 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
         }        
         
         [Fact]
-        public void DeleteJob_ScheduleIsEmptyResult()
+        public async Task DeleteJob_ScheduleIsEmptyResult()
         {
             //Act
-            var (success, message) = _scheduler.UnscheduleAllJobs();
+            var (success, message) = await _scheduler.UnscheduleAllJobsAsync();
 
             //Assert
             Assert.True(success);

@@ -1,4 +1,5 @@
-﻿using JobManagmentSystem.Scheduler.Common.Interfaces;
+﻿using System.Threading.Tasks;
+using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
@@ -12,44 +13,30 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
         public DeleteJobUnitTests()
         {
             _jobMaker = new TestJobMaker();
-            _scheduler = new JobManagmentSystem.Scheduler.Scheduler(NullLogger<JobManagmentSystem.Scheduler.Scheduler>.Instance);
+            _scheduler =
+                new JobManagmentSystem.Scheduler.Scheduler(NullLogger<JobManagmentSystem.Scheduler.Scheduler>.Instance);
         }
-        
+
         [Fact]
-        public void DeleteJob_ValidResult()
+        public async Task DeleteJob_ValidResult()
         {
             //Arrange
             var job = _jobMaker.CreateTestJob();
 
             //Act
-            _scheduler.ScheduleJob(job);
-            var (success, message) = _scheduler.UnscheduleJobById(job.Key);
+            await _scheduler.ScheduleJobAsync(job);
+            var (success, message) = await _scheduler.UnscheduleJobByIdAsync(job.Key);
 
             //Assert
             Assert.True(success);
             Assert.Equal($"Job {job.Key} was successfully unscheduled", message);
         }
-        
-        [Fact]
-        public void DeleteJob_JobNotExistsResult()
-        {
-            //Arrange
-            var job = _jobMaker.CreateTestJob();
 
-            //Act
-            _scheduler.ScheduleJob(job);
-            var (success, message) = _scheduler.UnscheduleJobById("key");
-
-            //Assert
-            Assert.True(success);
-            Assert.Equal("Job does not exist", message);
-        }
-        
         [Fact]
-        public void DeleteJob_SchedulerIsEmptyResult()
+        public async Task DeleteJob_SchedulerIsEmptyResult()
         {
             //Act
-            var (success, message) = _scheduler.UnscheduleJobById("key");
+            var (success, message) = await _scheduler.UnscheduleJobByIdAsync("key");
 
             //Assert
             Assert.True(success);

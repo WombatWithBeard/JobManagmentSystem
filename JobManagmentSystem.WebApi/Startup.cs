@@ -23,7 +23,7 @@ namespace JobManagmentSystem.WebApi
         {
             services.AddSingleton<Scheduler.Scheduler>();
             services.AddScoped<IPersistStorage, JobsFileStorage>();
-            services.AddScoped<IScheduler, PersistScheduler>();
+            services.AddScoped<IScheduler, PersistentScheduler>();
             services.AddScoped<TaskFactory>();
             services.AddScoped<IJobService, JobService>();
 

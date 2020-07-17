@@ -1,3 +1,5 @@
+using System.Reflection.Metadata;
+using System.Threading.Tasks;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -16,13 +18,13 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
         }
 
         [Fact]
-        public void AddJob_ValidResult()
+        public async Task AddJob_ValidResult()
         {
             //Arrange
             var job = _jobMaker.CreateTestJob();
 
             //Act
-            var (success, message) = _scheduler.ScheduleJob(job);
+            var (success, message) = await _scheduler.ScheduleJobAsync(job);
 
             //Assert
             Assert.True(success);
@@ -30,14 +32,14 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
         }
 
         [Fact]
-        public void AddJob_KeyAlreadyExistsResult()
+        public async Task AddJob_KeyAlreadyExistsResult()
         {
             //Arrange
             var job = _jobMaker.CreateTestJob();
 
             //Act
-            _scheduler.ScheduleJob(job);
-            var (success, message) = _scheduler.ScheduleJob(job);
+            await _scheduler.ScheduleJobAsync(job);
+            var (success, message) = await _scheduler.ScheduleJobAsync(job);
 
             //Assert
             Assert.False(success);

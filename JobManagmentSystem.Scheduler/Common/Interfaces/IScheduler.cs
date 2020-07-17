@@ -5,9 +5,9 @@ namespace JobManagmentSystem.Scheduler.Common.Interfaces
 {
     public interface IScheduler
     {
-        Task<(bool success, string message)> ScheduleJob(Job job);
-        Task<(bool success, string message)> RescheduleJob(Job job);
-        Task<(bool success, string message)> UnscheduleJobById(string key);
-        Task<(bool success, string message)> UnscheduleAllJobs();
+        Task<(bool success, string message)> ScheduleJobAsync(Job job);
+        Task<(bool success, string message)> RescheduleJobAsync(Job job);
+        Task<(bool success, string message)> UnscheduleJobByIdAsync(string key);
+        Task<(bool success, string message)> UnscheduleAllJobsAsync();
     }
 }

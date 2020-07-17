@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Text.Json;
+using System.Threading.Tasks;
 using JobManagmentSystem.FileStorage;
 using JobManagmentSystem.Scheduler;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
@@ -9,18 +10,19 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
 {
     public class CreateJobUnitTests
     {
-        private readonly IScheduler _scheduler;
+        private readonly JobManagmentSystem.Scheduler.Scheduler _scheduler;
         private readonly TestJobMaker _jobMaker;
-        private readonly ISchedulerAndPersistence _schedulerAndPersistService;
+        private readonly IScheduler _persistentScheduler;
         private readonly IPersistStorage _storage;
 
         public CreateJobUnitTests()
         {
             _jobMaker = new TestJobMaker();
-            _scheduler = new JobManagmentSystem.Scheduler.Scheduler(NullLogger<JobManagmentSystem.Scheduler.Scheduler>.Instance);
-            _storage = new JobsFileStorage();
-            _schedulerAndPersistService = new PersistScheduler(_scheduler, _storage,
-                NullLogger<PersistScheduler>.Instance);
+            _scheduler =
+                new JobManagmentSystem.Scheduler.Scheduler(NullLogger<JobManagmentSystem.Scheduler.Scheduler>.Instance);
+            _storage = new JobsFileStorage(NullLogger<JobsFileStorage>.Instance);
+            _persistentScheduler = new PersistentScheduler(_scheduler, _storage,
+                NullLogger<PersistentScheduler>.Instance);
         }
 
         [Fact]
@@ -30,7 +32,7 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
             var job = _jobMaker.CreateTestJob();
 
             //Act
-            var (success, message) = await _schedulerAndPersistService.CreateJobAsync(job);
+            var (success, message) = await _persistentScheduler.ScheduleJobAsync(job);
 
             //Assert
             Assert.True(success);
@@ -44,14 +46,14 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
             var job = _jobMaker.CreateTestJob();
 
             //Act
-            _scheduler.ScheduleJob(job);
-            var (success, message) = await _schedulerAndPersistService.CreateJobAsync(job);
+            await _scheduler.ScheduleJobAsync(job);
+            var (success, message) = await _persistentScheduler.ScheduleJobAsync(job);
 
             //Assert
             Assert.False(success);
             Assert.Equal($"Job {job.Key} already exists", message);
         }
-        
+
         [Fact]
         public async Task CreateJob_KeyAlreadyExistsInStorageResult()
         {
@@ -59,8 +61,8 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
             var job = _jobMaker.CreateTestJob();
 
             //Act
-            await _storage.SaveJobAsync(job);
-            var (success, message) = await _schedulerAndPersistService.CreateJobAsync(job);
+            await _storage.SaveJobAsync(JsonSerializer.Serialize(job), job.Key);
+            var (success, message) = await _persistentScheduler.ScheduleJobAsync(job);
 
             //Assert
             Assert.False(success);

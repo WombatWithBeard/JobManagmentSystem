@@ -31,7 +31,7 @@ namespace JobManagmentSystem.Application
                 var job = new Job(task, Convert.ToDateTime(dto.TimeStart), dto.Interval, dto.IntervalType,
                     dto.TaskName, dto.TaskParameters);
 
-                return await _scheduler.ScheduleJob(job);
+                return await _scheduler.ScheduleJobAsync(job);
             }
             catch (Exception e)
             {
@@ -44,7 +44,7 @@ namespace JobManagmentSystem.Application
         {
             try
             {
-                return await _scheduler.UnscheduleJobById(key);
+                return await _scheduler.UnscheduleJobByIdAsync(key);
             }
             catch (Exception e)
             {
@@ -62,7 +62,7 @@ namespace JobManagmentSystem.Application
                 var job = new Job(task, Convert.ToDateTime(dto.TimeStart), dto.Interval, dto.IntervalType,
                     dto.TaskName, dto.TaskParameters);
 
-                return await _scheduler.RescheduleJob(job);
+                return await _scheduler.RescheduleJobAsync(job);
             }
             catch (Exception e)
             {
