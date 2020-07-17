@@ -1,5 +1,4 @@
-﻿using JobManagmentSystem.Scheduler;
-using JobManagmentSystem.Scheduler.Common.Interfaces;
+﻿using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 

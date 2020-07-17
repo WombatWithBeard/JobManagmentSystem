@@ -26,14 +26,13 @@ namespace JobManagmentSystem.Scheduler
             {
                 if (_timers.ContainsKey(job.Key)) return (false, $"Job {job.Key} already exists");
 
-                var timer = new Timer(s => job.Task.Invoke(s),
-                    job.Task,
-                    job.Schedule.GetStartJobTimeSpan(),
-                    job.Schedule.GetPeriodJobTimeSpan());
+                var timer = CreateNewTimer(job);
 
-                _timers.Add(job.Key, timer);
+                var addResult = _timers.TryAdd(job.Key, timer);
 
-                return (true, $"Job {job.Key} was successfully scheduled");
+                return addResult
+                    ? (true, $"Job {job.Key} was successfully scheduled")
+                    : (false, $"Job {job.Key} schedule failed");
             }
             catch (Exception e)
             {
@@ -44,22 +43,46 @@ namespace JobManagmentSystem.Scheduler
 
         public async Task<(bool success, string message)> RescheduleJob(Job job)
         {
-            throw new NotImplementedException();
+            try
+            {
+                if (_timers.Count > 0 && _timers.ContainsKey(job.Key))
+                {
+                    var removeResult = _timers.Remove(job.Key);
+                    if (!removeResult) return (false, $"Remove job {job.Key} from scheduler was failed");
+                }
+
+                var timer = CreateNewTimer(job);
+
+                var addResult = _timers.TryAdd(job.Key, timer);
+
+                return addResult
+                    ? (true, $"Job {job.Key} was successfully scheduled")
+                    : (false, $"Job {job.Key} schedule failed");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                return (false, e.Message);
+            }
         }
 
         public async Task<(bool success, string message)> UnscheduleJobById(string key)
         {
             try
             {
+                if (string.IsNullOrEmpty(key)) return (false, "Key is empty");
+
                 if (_timers.Count <= 0) return (true, "Scheduler is empty");
 
                 if (!_timers.ContainsKey(key)) return (true, $"Job {key} does not scheduled");
-                
+
                 await _timers.First(pair => pair.Key == key && pair.Value != null).Value.DisposeAsync();
-                _timers.Remove(key);
 
-                return (true, $"Job {key} was successfully unscheduled");
+                var removeResult = _timers.Remove(key);
 
+                return removeResult
+                    ? (true, $"Job {key} was successfully unscheduled")
+                    : (false, $"Remove job {key} from scheduler was failed");
             }
             catch (Exception e)
             {
@@ -86,5 +109,11 @@ namespace JobManagmentSystem.Scheduler
                 return (false, e.Message);
             }
         }
+
+        private Timer CreateNewTimer(Job job) => new Timer(
+            s => job.Task.Invoke(s),
+            job.TaskParameters,
+            job.Schedule.GetStartJobTimeSpan(),
+            job.Schedule.GetPeriodJobTimeSpan());
     }
 }

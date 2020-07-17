@@ -2,88 +2,126 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading.Tasks;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
-using JobManagmentSystem.Scheduler.Common.Models;
+using Microsoft.Extensions.Logging;
 
 namespace JobManagmentSystem.FileStorage
 {
     public class JobsFileStorage : IPersistStorage
     {
+        private readonly ILogger<JobsFileStorage> _logger;
         private readonly string _fileName;
         private readonly string _path;
 
-        public JobsFileStorage(string fileName = @"\jobs.ndjson")
+        public JobsFileStorage(ILogger<JobsFileStorage> logger, string fileName = @"\jobs.ndjson")
         {
+            _logger = logger;
             _fileName = fileName;
             _path = Directory.GetCurrentDirectory() + _fileName;
         }
 
-        //TODO: a lot of ...
-        //TODO: add logging
-
         public async Task<(bool success, string message)> SaveJobAsync(string jsonJob, string key)
         {
-            if (File.Exists(_path))
+            try
             {
-                var jobs = await File.ReadAllLinesAsync(_path);
+                if (File.Exists(_path))
+                {
+                    var jobs = await File.ReadAllLinesAsync(_path);
 
-                if (jobs.Any(j => j.Contains(key))) return (false, $"Key {key} already exists");
+                    if (jobs.Any(j => j.Contains(key))) return (false, $"Key {key} already exists");
+                }
+
+                await File.AppendAllLinesAsync(Directory.GetCurrentDirectory() + _fileName,
+                    new[] {jsonJob});
+
+                return (true, $"Job {key} saved successfully");
             }
-
-            await File.AppendAllLinesAsync(Directory.GetCurrentDirectory() + _fileName,
-                new[] {jsonJob});
-
-            return (true, $"Job {key} saved successfully");
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                return (false, e.Message);
+            }
         }
 
         public async Task<(bool success, string message)> DeleteJobAsync(string key)
         {
-            if (!File.Exists(_path)) return (false, "File not exists");
+            try
+            {
+                if (!File.Exists(_path)) return (false, "File not exists");
 
-            var jobs = await File.ReadAllLinesAsync(_path);
+                var jobs = await File.ReadAllLinesAsync(_path);
 
-            if (!jobs.Any(j => j.Contains(key))) return (false, $"Key {key} not exists");
+                if (!jobs.Any(j => j.Contains(key))) return (false, $"Key {key} not exists");
 
-            var newJobs = jobs.Where(j => !j.Contains(key));
+                var newJobs = jobs.Where(j => !j.Contains(key));
 
-            await File.WriteAllLinesAsync(_path, newJobs);
+                await File.WriteAllLinesAsync(_path, newJobs);
 
-            return (true, $"Key {key} successfully deleted");
+                return (true, $"Key {key} successfully deleted");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                return (false, e.Message);
+            }
         }
 
         public async Task<(bool success, string message)> DeleteAllJobAsync()
         {
-            if (!File.Exists(_path)) return (true, "File not exists");
+            try
+            {
+                if (!File.Exists(_path)) return (true, "File not exists");
 
-            await File.WriteAllLinesAsync(_path, new List<string>());
+                await File.WriteAllLinesAsync(_path, new List<string>());
 
-            return (true, "All jobs was deleted");
+                return (true, "All jobs was deleted");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                return (false, e.Message);
+            }
         }
 
         public async Task<(bool success, string message, string[] result)> GetJobsAsync()
         {
-            if (!File.Exists(_path)) return (false, "File not exists", null);
+            try
+            {
+                if (!File.Exists(_path)) return (false, "File not exists", null);
 
-            var result = await File.ReadAllLinesAsync(_path);
+                var result = await File.ReadAllLinesAsync(_path);
 
-            return (true, "File read successfully", result);
+                return (true, "File read successfully", result);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                return (false, e.Message, null);
+            }
         }
 
         public async Task<(bool success, string message, string result)> GetJobAsync(string key)
         {
-            if (!File.Exists(_path)) return (false, "File not exists", null);
+            try
+            {
+                if (!File.Exists(_path)) return (false, "File not exists", null);
 
-            var jobs = await File.ReadAllLinesAsync(_path);
+                var jobs = await File.ReadAllLinesAsync(_path);
 
-            if (jobs == null) return (false, "Jobs list was empty", null);
+                if (jobs == null) return (false, "Jobs list was empty", null);
 
-            var job = jobs.FirstOrDefault(j => j.Contains(key));
+                var job = jobs.FirstOrDefault(j => j.Contains(key));
 
-            if (job == null) return (false, "Jobs list was empty", null);
+                if (job == null) return (false, "Jobs list was empty", null);
 
-            return (true, "There is ur job, boy", job);
+                return (true, "There is ur job, boy", job);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                return (false, e.Message, null);
+            }
         }
     }
 }

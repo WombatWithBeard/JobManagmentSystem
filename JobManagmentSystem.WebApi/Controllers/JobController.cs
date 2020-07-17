@@ -1,5 +1,4 @@
-﻿using System.Text.Json;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using JobManagmentSystem.Application;
 using Microsoft.AspNetCore.Mvc;
 
@@ -26,7 +25,7 @@ namespace JobManagmentSystem.WebApi.Controllers
                 //TODO: what about this?
             }
 
-            return Ok(createJob);
+            return Ok(createJob.ToString());
         }
 
         [HttpDelete]
@@ -34,7 +33,7 @@ namespace JobManagmentSystem.WebApi.Controllers
         {
             var deleteJob = await _service.UncheduleJobAsync(key);
 
-            return Ok(deleteJob);
+            return Ok(deleteJob.ToString());
         }
 
         [HttpPost]
@@ -47,7 +46,7 @@ namespace JobManagmentSystem.WebApi.Controllers
                 //TODO: what about this?
             }
 
-            return Ok(scheduleJob);
+            return Ok(scheduleJob.ToString());
         }
 
         [HttpGet("/{key}")]
@@ -56,7 +55,7 @@ namespace JobManagmentSystem.WebApi.Controllers
             var getJob = await _service.GetScheduledJobByIdAsync(key);
             if (!getJob.success) return NotFound(getJob.message);
 
-            return Ok(getJob.job);
+            return Ok(getJob.ToString());
         }
 
         [HttpGet]
@@ -65,7 +64,7 @@ namespace JobManagmentSystem.WebApi.Controllers
             var jobs = await _service.GetAllSchedulerJobsAsync();
             if (!jobs.success) return NotFound(jobs.message);
 
-            return Ok(jobs.jobs);
+            return Ok(jobs.ToString());
         }
     }
 }

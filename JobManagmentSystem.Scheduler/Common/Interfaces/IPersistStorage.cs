@@ -1,5 +1,4 @@
 ﻿using System.Threading.Tasks;
-using JobManagmentSystem.Scheduler.Common.Models;
 
 namespace JobManagmentSystem.Scheduler.Common.Interfaces
 {

@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text.Json;
 using System.Threading.Tasks;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using JobManagmentSystem.Scheduler.Common.Models;
@@ -28,7 +26,7 @@ namespace JobManagmentSystem.Application
         {
             try
             {
-                var task = _factory.Create(dto.TaskName, dto.TaskParameters);
+                var task = _factory.Create(dto.TaskName);
 
                 var job = new Job(task, Convert.ToDateTime(dto.TimeStart), dto.Interval, dto.IntervalType,
                     dto.TaskName, dto.TaskParameters);
@@ -59,7 +57,7 @@ namespace JobManagmentSystem.Application
         {
             try
             {
-                var task = _factory.Create(dto.TaskName, dto.TaskParameters);
+                var task = _factory.Create(dto.TaskName);
 
                 var job = new Job(task, Convert.ToDateTime(dto.TimeStart), dto.Interval, dto.IntervalType,
                     dto.TaskName, dto.TaskParameters);
@@ -131,31 +129,5 @@ namespace JobManagmentSystem.Application
                 throw;
             }
         }
-
-        // public async Task<(bool success, string message, string job)> GetJobAsync(string key)
-        // {
-        //     try
-        //     {
-        //         return await _storage.GetJobAsync(key);
-        //     }
-        //     catch (Exception e)
-        //     {
-        //         _logger.LogError(e.Message);
-        //         return (false, e.Message, null);
-        //     }
-        // }
-        //
-        // public async Task<(bool success, string message, string[] jobs)> GetJobsListAsync()
-        // {
-        //     try
-        //     {
-        //         return await _storage.GetJobsAsync();
-        //     }
-        //     catch (Exception e)
-        //     {
-        //         _logger.LogError(e.Message);
-        //         return (false, e.Message, null);
-        //     }
-        // }
     }
 }

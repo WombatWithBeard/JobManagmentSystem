@@ -1,6 +1,4 @@
-﻿using System.Collections.Generic;
-using System.Threading.Tasks;
-using JobManagmentSystem.Scheduler.Common.Models;
+﻿using System.Threading.Tasks;
 
 namespace JobManagmentSystem.Application
 {

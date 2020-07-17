@@ -5,6 +5,7 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <ProjectReference Include="..\ConsoleWriterJobService\ConsoleWriterJobService.csproj" />
       <ProjectReference Include="..\FileCopyJobService\FileCopyJobService.csproj" />
       <ProjectReference Include="..\JobManagmentSystem.Scheduler\JobManagmentSystem.Scheduler.csproj" />
     </ItemGroup>
