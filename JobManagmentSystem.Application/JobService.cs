@@ -12,13 +12,15 @@ namespace JobManagmentSystem.Application
     {
         private readonly IScheduler _scheduler;
         private readonly TaskFactory _factory;
+        private readonly IPersistStorage _storage;
         private readonly ILogger<JobService> _logger;
 
-        public JobService(IScheduler scheduler, TaskFactory factory,
+        public JobService(IScheduler scheduler, TaskFactory factory, IPersistStorage storage,
             ILogger<JobService> logger)
         {
             _scheduler = scheduler;
             _factory = factory;
+            _storage = storage;
             _logger = logger;
         }
 
@@ -40,11 +42,11 @@ namespace JobManagmentSystem.Application
             }
         }
 
-        public async Task<(bool success, string message)> DeleteJobAsync(string key)
+        public async Task<(bool success, string message)> UncheduleJobAsync(string key)
         {
             try
             {
-                return await _scheduler.DeleteJobAsync(key);
+                return await _scheduler.UnscheduleJobById(key);
             }
             catch (Exception e)
             {
@@ -62,7 +64,7 @@ namespace JobManagmentSystem.Application
                 var job = new Job(task, Convert.ToDateTime(dto.TimeStart), dto.Interval, dto.IntervalType,
                     dto.TaskName, dto.TaskParameters);
 
-                return await _scheduler.ReScheduleJobAsync(job);
+                return await _scheduler.RescheduleJob(job);
             }
             catch (Exception e)
             {
@@ -71,31 +73,44 @@ namespace JobManagmentSystem.Application
             }
         }
 
-        public async Task<Dictionary<string, (bool success, string message)>> ReScheduleAllJobsAsync()
+        // public async Task<Dictionary<string, (bool success, string message)>> ReScheduleAllJobsAsync()
+        // {
+        //     try
+        //     {
+        //         var jobsListAsync = await _scheduler.GetJobsListAsync();
+        //
+        //         if (!jobsListAsync.success) throw new Exception(jobsListAsync.message);
+        //
+        //         if (jobsListAsync.success && jobsListAsync.jobs.Length <= 0) throw new Exception("No data available");
+        //
+        //         //TODO: Need mapping
+        //         var dict = new Dictionary<string, (bool success, string message)>();
+        //
+        //         foreach (var jobS in jobsListAsync.jobs)
+        //         {
+        //             var job = JsonSerializer.Deserialize<Job>(jobS);
+        //
+        //             job.Task = _factory.Create(job.Name, job.TaskParameters);
+        //
+        //             var reScheduleResult = await _scheduler.ReScheduleJobAsync(job);
+        //
+        //             dict.Add(job.Key, reScheduleResult);
+        //         }
+        //
+        //         return dict;
+        //     }
+        //     catch (Exception e)
+        //     {
+        //         _logger.LogError(e.Message);
+        //         throw;
+        //     }
+        // }
+
+        public async Task<(bool success, string message, string job)> GetScheduledJobByIdAsync(string key)
         {
             try
             {
-                var jobsListAsync = await _scheduler.GetJobsListAsync();
-
-                if (!jobsListAsync.success) throw new Exception(jobsListAsync.message);
-
-                if (jobsListAsync.success && jobsListAsync.jobs.Length <= 0) throw new Exception("No data available");
-
-                //TODO: Need mapping
-                var dict = new Dictionary<string, (bool success, string message)>();
-
-                foreach (var jobS in jobsListAsync.jobs)
-                {
-                    var job = JsonSerializer.Deserialize<Job>(jobS);
-
-                    job.Task = _factory.Create(job.Name, job.TaskParameters);
-
-                    var reScheduleResult = await _scheduler.ReScheduleJobAsync(job);
-
-                    dict.Add(job.Key, reScheduleResult);
-                }
-
-                return dict;
+                return await _storage.GetJobAsync(key);
             }
             catch (Exception e)
             {
@@ -104,11 +119,11 @@ namespace JobManagmentSystem.Application
             }
         }
 
-        public async Task<(bool success, string message, Job job)> GetScheduledJobByIdAsync(string key)
+        public async Task<(bool success, string message, string[] jobs)> GetAllSchedulerJobsAsync()
         {
             try
             {
-                return await _scheduler.GetJobAsync(key);
+                return await _storage.GetJobsAsync();
             }
             catch (Exception e)
             {
@@ -117,19 +132,6 @@ namespace JobManagmentSystem.Application
             }
         }
 
-        public async Task<(bool success, string message, List<Job> jobs)> GetAllSchedulerJobsAsync()
-        {
-            try
-            {
-                return await _scheduler.GetJobsListAsync();
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e.Message);
-                throw;
-            }
-        }
-        
         // public async Task<(bool success, string message, string job)> GetJobAsync(string key)
         // {
         //     try
@@ -157,4 +159,3 @@ namespace JobManagmentSystem.Application
         // }
     }
 }
-

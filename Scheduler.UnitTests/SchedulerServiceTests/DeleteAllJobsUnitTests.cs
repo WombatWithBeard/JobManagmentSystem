@@ -17,13 +17,13 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
         }
 
         [Fact]
-        public void DeleteJob_ValidResult()
+        public async void DeleteJob_ValidResult()
         {
             //Act
-            _scheduler.ScheduleJob(_jobMaker.CreateTestJob());
-            _scheduler.ScheduleJob(_jobMaker.CreateTestJob());
-            _scheduler.ScheduleJob(_jobMaker.CreateTestJob());
-            var (success, message) = _scheduler.UnscheduleAllJobs();
+            await _scheduler.ScheduleJob(_jobMaker.CreateTestJob());
+            await _scheduler.ScheduleJob(_jobMaker.CreateTestJob());
+            await _scheduler.ScheduleJob(_jobMaker.CreateTestJob());
+            var (success, message) = await _scheduler.UnscheduleAllJobs();
 
             //Assert
             Assert.True(success);

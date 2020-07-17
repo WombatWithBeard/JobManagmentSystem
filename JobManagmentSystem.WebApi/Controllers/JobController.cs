@@ -32,7 +32,7 @@ namespace JobManagmentSystem.WebApi.Controllers
         [HttpDelete]
         public async Task<IActionResult> Delete([FromBody] string key)
         {
-            var deleteJob = await _service.DeleteJobAsync(key);
+            var deleteJob = await _service.UncheduleJobAsync(key);
 
             return Ok(JsonSerializer.Serialize(deleteJob));
         }
@@ -62,10 +62,10 @@ namespace JobManagmentSystem.WebApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var jobsList = await _service.GetAllSchedulerJobsAsync();
-            if (!jobsList.success) return NotFound(jobsList.message);
+            var jobs = await _service.GetAllSchedulerJobsAsync();
+            if (!jobs.success) return NotFound(jobs.message);
 
-            return Ok(JsonSerializer.Serialize(jobsList.jobs));
+            return Ok(JsonSerializer.Serialize(jobs.jobs));
         }
     }
 }

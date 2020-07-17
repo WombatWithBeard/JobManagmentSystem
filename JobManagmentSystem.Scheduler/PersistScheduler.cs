@@ -28,7 +28,7 @@ namespace JobManagmentSystem.Scheduler
                 var addJob = await _scheduler.ScheduleJob(job);
                 if (!addJob.success) return (addJob.success, addJob.message);
 
-                var saveJob = await _storage.SaveJobAsync(JsonSerializer.Serialize(job));
+                var saveJob = await _storage.SaveJobAsync(JsonSerializer.Serialize(job), job.Key);
                 if (!saveJob.success) return (saveJob.success, saveJob.message);
 
                 var unscheduledJob = await _scheduler.UnscheduleJobById(job.Key);
@@ -64,11 +64,11 @@ namespace JobManagmentSystem.Scheduler
                         return (deleteJob.success, deleteJob.message);
                     }
                 }
-                
+
                 var unscheduledJob = await _scheduler.UnscheduleJobById(job.Key);
                 if (!unscheduledJob.success) return (unscheduledJob.success, unscheduledJob.message);
 
-                var saveJob = await _storage.SaveJobAsync(JsonSerializer.Serialize(job));
+                var saveJob = await _storage.SaveJobAsync(JsonSerializer.Serialize(job), job.Key);
                 if (!saveJob.success) return (saveJob.success, saveJob.message);
 
                 var addJob = await _scheduler.ScheduleJob(job);
@@ -111,7 +111,13 @@ namespace JobManagmentSystem.Scheduler
         {
             try
             {
-                throw new NotImplementedException();
+                var unscheduledJobs = await _scheduler.UnscheduleAllJobs();
+                if (!unscheduledJobs.success) return (unscheduledJobs.success, unscheduledJobs.message);
+
+                var deletedJobs = await _storage.DeleteAllJobAsync();
+                if (!deletedJobs.success) return (deletedJobs.success, deletedJobs.message);
+
+                return (unscheduledJobs.success, unscheduledJobs.message);
             }
             catch (Exception e)
             {
