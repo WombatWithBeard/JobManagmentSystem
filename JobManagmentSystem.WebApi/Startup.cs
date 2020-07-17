@@ -25,7 +25,7 @@ namespace JobManagmentSystem.WebApi
             services.AddScoped<IPersistStorage, JobsFileStorage>();
             services.AddScoped<IScheduler, PersistScheduler>();
             services.AddScoped<TaskFactory>();
-            services.AddScoped<JobService>();
+            services.AddScoped<IJobService, JobService>();
 
             services.AddControllers();
         }

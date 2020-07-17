@@ -9,11 +9,11 @@ namespace JobManagmentSystem.Scheduler
 {
     public class PersistScheduler : IScheduler
     {
-        private readonly IScheduler _scheduler;
+        private readonly Scheduler _scheduler;
         private readonly IPersistStorage _storage;
         private readonly ILogger<PersistScheduler> _logger;
 
-        public PersistScheduler(IScheduler scheduler, IPersistStorage storage,
+        public PersistScheduler(Scheduler scheduler, IPersistStorage storage,
             ILogger<PersistScheduler> logger)
         {
             _scheduler = scheduler;
@@ -37,8 +37,8 @@ namespace JobManagmentSystem.Scheduler
                 var counter = 0;
                 while (counter <= 3 || unscheduledJob.success)
                 {
-                    unscheduledJob = await _scheduler.UnscheduleJobById(job.Key);
                     await Task.Delay(1500);
+                    unscheduledJob = await _scheduler.UnscheduleJobById(job.Key);
                     counter++;
                 }
 

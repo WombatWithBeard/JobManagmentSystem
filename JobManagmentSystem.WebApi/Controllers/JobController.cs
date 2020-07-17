@@ -9,9 +9,9 @@ namespace JobManagmentSystem.WebApi.Controllers
     [Route("api/[controller]/[action]")]
     public class JobController : ControllerBase
     {
-        private readonly JobService _service;
+        private readonly IJobService _service;
 
-        public JobController(JobService service)
+        public JobController(IJobService service)
         {
             _service = service;
         }
@@ -26,7 +26,7 @@ namespace JobManagmentSystem.WebApi.Controllers
                 //TODO: what about this?
             }
 
-            return Ok(JsonSerializer.Serialize(createJob));
+            return Ok(createJob);
         }
 
         [HttpDelete]
@@ -34,7 +34,7 @@ namespace JobManagmentSystem.WebApi.Controllers
         {
             var deleteJob = await _service.UncheduleJobAsync(key);
 
-            return Ok(JsonSerializer.Serialize(deleteJob));
+            return Ok(deleteJob);
         }
 
         [HttpPost]
@@ -47,7 +47,7 @@ namespace JobManagmentSystem.WebApi.Controllers
                 //TODO: what about this?
             }
 
-            return Ok(JsonSerializer.Serialize(scheduleJob));
+            return Ok(scheduleJob);
         }
 
         [HttpGet("/{key}")]
@@ -56,7 +56,7 @@ namespace JobManagmentSystem.WebApi.Controllers
             var getJob = await _service.GetScheduledJobByIdAsync(key);
             if (!getJob.success) return NotFound(getJob.message);
 
-            return Ok(JsonSerializer.Serialize(getJob.job));
+            return Ok(getJob.job);
         }
 
         [HttpGet]
@@ -65,7 +65,7 @@ namespace JobManagmentSystem.WebApi.Controllers
             var jobs = await _service.GetAllSchedulerJobsAsync();
             if (!jobs.success) return NotFound(jobs.message);
 
-            return Ok(JsonSerializer.Serialize(jobs.jobs));
+            return Ok(jobs.jobs);
         }
     }
 }
