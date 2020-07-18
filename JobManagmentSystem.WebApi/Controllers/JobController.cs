@@ -20,11 +20,6 @@ namespace JobManagmentSystem.WebApi.Controllers
         {
             var createJob = await _service.ScheduleJobAsync(dto);
 
-            if (!createJob.success)
-            {
-                //TODO: what about this?
-            }
-
             return Ok(createJob.ToString());
         }
 
@@ -41,11 +36,6 @@ namespace JobManagmentSystem.WebApi.Controllers
         {
             var scheduleJob = await _service.RescheduleJobAsync(dto);
 
-            if (!scheduleJob.success)
-            {
-                //TODO: what about this?
-            }
-
             return Ok(scheduleJob.ToString());
         }
 
@@ -53,7 +43,6 @@ namespace JobManagmentSystem.WebApi.Controllers
         public async Task<IActionResult> Get([FromBody] string key)
         {
             var getJob = await _service.GetScheduledJobByIdAsync(key);
-            if (!getJob.success) return NotFound(getJob.message);
 
             return Ok(getJob.ToString());
         }
@@ -62,7 +51,6 @@ namespace JobManagmentSystem.WebApi.Controllers
         public async Task<IActionResult> GetAll()
         {
             var jobs = await _service.GetAllSchedulerJobsAsync();
-            if (!jobs.success) return NotFound(jobs.message);
 
             return Ok(jobs.ToString());
         }

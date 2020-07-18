@@ -108,6 +108,21 @@ namespace JobManagmentSystem.Scheduler
             }
         }
 
+        public async Task<(bool success, string message, string[] jobs)> GetJobsArrayAsync()
+        {
+            try
+            {
+                return _timers.Count <= 0
+                    ? (false, "Scheduler is empty", null)
+                    : (true, "All job was successfully unscheduled", _timers.Keys.ToArray());
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                return (false, e.Message, null);
+            }
+        }
+
         private Timer CreateNewTimer(Job job) => new Timer(
             s => job.Task.Invoke(s),
             job.TaskParameters,

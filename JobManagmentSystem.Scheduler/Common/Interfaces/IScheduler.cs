@@ -9,5 +9,6 @@ namespace JobManagmentSystem.Scheduler.Common.Interfaces
         Task<(bool success, string message)> UnscheduleJobAsync(string key);
         Task<(bool success, string message)> RescheduleJobAsync(Job job);
         Task<(bool success, string message, string job)> GetJobAsync(string key);
+        Task<(bool success, string message, string[] jobs)> GetJobsArrayAsync();
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 using JobManagmentSystem.Scheduler.Common.Exception;
@@ -110,7 +112,7 @@ namespace JobManagmentSystem.Scheduler
                 throw;
             }
         }
-        
+
         public async Task<(bool success, string message)> RescheduleJobAsync(Job job)
         {
             try
@@ -145,6 +147,32 @@ namespace JobManagmentSystem.Scheduler
                 if (!savedJob.success && !scheduledJob.success) throw new NotFoundException(key);
 
                 return (savedJob.success, savedJob.message, savedJob.job);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw;
+            }
+        }
+
+        public async Task<(bool success, string message, string[] jobs)> GetJobsArrayAsync()
+        {
+            try
+            {
+                var schedulerJobs = await _scheduler.GetJobsArrayAsync();
+                var persistentJobs = await _storage.GetJobsAsync();
+
+                if (!schedulerJobs.success && !persistentJobs.success) return (false, "No jobs was found", null);
+
+                if (schedulerJobs.success && !persistentJobs.success)
+                    return (true, "Job id only from scheduler", schedulerJobs.jobs);
+
+                if (!schedulerJobs.success && persistentJobs.success)
+                    return (true, "Jobs from storage", persistentJobs.jobs);
+
+                var jobs = persistentJobs.jobs.Union(schedulerJobs.jobs).ToArray();
+
+                return (true, "Jobs from storage, key from scheduler", jobs);
             }
             catch (Exception e)
             {
