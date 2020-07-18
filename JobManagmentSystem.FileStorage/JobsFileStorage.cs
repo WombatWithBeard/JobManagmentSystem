@@ -84,7 +84,7 @@ namespace JobManagmentSystem.FileStorage
             }
         }
 
-        public async Task<(bool success, string message, string[] result)> GetJobsAsync()
+        public async Task<(bool success, string message, string[] jobs)> GetJobsAsync()
         {
             try
             {
@@ -101,7 +101,7 @@ namespace JobManagmentSystem.FileStorage
             }
         }
 
-        public async Task<(bool success, string message, string result)> GetJobAsync(string key)
+        public async Task<(bool success, string message, string job)> GetJobAsync(string key)
         {
             try
             {

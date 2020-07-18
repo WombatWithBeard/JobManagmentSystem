@@ -44,7 +44,7 @@ namespace JobManagmentSystem.Application
         {
             try
             {
-                return await _scheduler.UnscheduleJobByIdAsync(key);
+                return await _scheduler.UnscheduleJobAsync(key);
             }
             catch (Exception e)
             {

@@ -33,7 +33,7 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
 
             //Act
             await _persistentScheduler.ScheduleJobAsync(job);
-            var (success, message) = await _persistentScheduler.UnscheduleJobByIdAsync(job.Key);
+            var (success, message) = await _persistentScheduler.UnscheduleJobAsync(job.Key);
 
             //Assert
             Assert.True(success);
@@ -44,7 +44,7 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
         public async Task DeleteJob_KeyNotExistsInStorageResult()
         {
             //Act
-            var (success, message) = await _persistentScheduler.UnscheduleJobByIdAsync("test");
+            var (success, message) = await _persistentScheduler.UnscheduleJobAsync("test");
 
             //Assert
             Assert.False(success);
@@ -59,7 +59,7 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
 
             //Act
             await _storage.SaveJobAsync(JsonSerializer.Serialize(job), job.Key);
-            var (success, message) = await _persistentScheduler.UnscheduleJobByIdAsync(job.Key);
+            var (success, message) = await _persistentScheduler.UnscheduleJobAsync(job.Key);
 
             //Assert
             Assert.True(success);

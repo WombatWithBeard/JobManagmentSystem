@@ -41,6 +41,31 @@ namespace JobManagmentSystem.Scheduler
             }
         }
 
+        public async Task<(bool success, string message)> UnscheduleJobAsync(string key)
+        {
+            try
+            {
+                if (string.IsNullOrEmpty(key)) return (false, "Key is empty");
+
+                if (_timers.Count <= 0) return (true, "Scheduler is empty");
+
+                if (!_timers.ContainsKey(key)) return (true, $"Job {key} does not scheduled");
+
+                await _timers.First(pair => pair.Key == key && pair.Value != null).Value.DisposeAsync();
+
+                var removeResult = _timers.Remove(key);
+
+                return removeResult
+                    ? (true, $"Job {key} was successfully unscheduled")
+                    : (false, $"Remove job {key} from scheduler was failed");
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                return (false, e.Message);
+            }
+        }
+
         public async Task<(bool success, string message)> RescheduleJobAsync(Job job)
         {
             try
@@ -66,47 +91,20 @@ namespace JobManagmentSystem.Scheduler
             }
         }
 
-        public async Task<(bool success, string message)> UnscheduleJobByIdAsync(string key)
+        public async Task<(bool success, string message, string job)> GetJobAsync(string key)
         {
             try
             {
-                if (string.IsNullOrEmpty(key)) return (false, "Key is empty");
+                if (_timers.Count <= 0) return (false, "Scheduler is empty", null);
 
-                if (_timers.Count <= 0) return (true, "Scheduler is empty");
+                if (_timers.ContainsKey(key)) return (true, $"Job: {key} is active", null);
 
-                if (!_timers.ContainsKey(key)) return (true, $"Job {key} does not scheduled");
-
-                await _timers.First(pair => pair.Key == key && pair.Value != null).Value.DisposeAsync();
-
-                var removeResult = _timers.Remove(key);
-
-                return removeResult
-                    ? (true, $"Job {key} was successfully unscheduled")
-                    : (false, $"Remove job {key} from scheduler was failed");
+                return (false, $"Job: {key} is not scheduled", null);
             }
             catch (Exception e)
             {
                 _logger.LogError(e.Message);
-                return (false, e.Message);
-            }
-        }
-
-        public async Task<(bool success, string message)> UnscheduleAllJobsAsync()
-        {
-            try
-            {
-                if (_timers.Count <= 0) return (true, "Scheduler is empty");
-
-                foreach (var timersValue in _timers.Values.Where(t => t != null)) await timersValue.DisposeAsync();
-
-                _timers.Clear();
-
-                return (true, "All job was successfully unscheduled");
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e.Message);
-                return (false, e.Message);
+                throw;
             }
         }
 

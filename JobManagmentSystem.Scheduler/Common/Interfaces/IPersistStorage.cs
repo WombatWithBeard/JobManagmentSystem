@@ -6,8 +6,7 @@ namespace JobManagmentSystem.Scheduler.Common.Interfaces
     {
         Task<(bool success, string message)> SaveJobAsync(string jsonJob, string key);
         Task<(bool success, string message)> DeleteJobAsync(string key);
-        Task<(bool success, string message)> DeleteAllJobAsync();
-        Task<(bool success, string message, string[] result)> GetJobsAsync();
-        Task<(bool success, string message, string result)> GetJobAsync(string key);
+        Task<(bool success, string message, string[] jobs)> GetJobsAsync();
+        Task<(bool success, string message, string job)> GetJobAsync(string key);
     }
 }

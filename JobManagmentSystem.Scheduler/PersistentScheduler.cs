@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Text.Json;
 using System.Threading.Tasks;
+using JobManagmentSystem.Scheduler.Common.Exception;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using JobManagmentSystem.Scheduler.Common.Models;
 using Microsoft.Extensions.Logging;
@@ -26,57 +27,99 @@ namespace JobManagmentSystem.Scheduler
             try
             {
                 var addJob = await _scheduler.ScheduleJobAsync(job);
-                if (!addJob.success) return (addJob.success, addJob.message);
+                if (!addJob.success) throw new ScheduleJobException(job.Name, job.Key);
 
                 var saveJob = await _storage.SaveJobAsync(JsonSerializer.Serialize(job), job.Key);
-                if (saveJob.success) return (addJob.success, addJob.message);
+                if (!saveJob.success) throw new SaveJobException(job.Name, job.Key);
 
-                var unscheduledJob = await _scheduler.UnscheduleJobByIdAsync(job.Key);
-                if (unscheduledJob.success) return (saveJob.success, saveJob.message);
+                return (addJob.success, addJob.message);
+            }
+            catch (SaveJobException e)
+            {
+                _logger.LogError(e.Message);
+
+                var unscheduledJob = await _scheduler.UnscheduleJobAsync(job.Key);
+                if (unscheduledJob.success)
+                {
+                    _logger.LogError($"Job {job.Key} was successfully unscheduled while SaveJobException");
+                    throw;
+                }
 
                 var counter = 0;
                 while (counter <= 3 || unscheduledJob.success)
                 {
                     await Task.Delay(1500);
-                    unscheduledJob = await _scheduler.UnscheduleJobByIdAsync(job.Key);
+                    unscheduledJob = await _scheduler.UnscheduleJobAsync(job.Key);
                     counter++;
                 }
 
-                return (saveJob.success, saveJob.message);
+                _logger.LogError(unscheduledJob.success
+                    ? $"Job {job.Key} was successfully unscheduled while {nameof(SaveJobException)}"
+                    : $"Job {job.Key} unscheduled while SaveJobException was failed");
+
+                throw;
+                //TODO: exception while catch?
             }
             catch (Exception e)
             {
                 _logger.LogError(e.Message);
-                return (false, e.Message);
+                throw;
             }
         }
 
-        //TODO: what i need to do? add TryTo... with while?
+        public async Task<(bool success, string message)> UnscheduleJobAsync(string key)
+        {
+            try
+            {
+                var unscheduledJob = await _scheduler.UnscheduleJobAsync(key);
+                if (unscheduledJob.success) throw new UnscheduleJobException(key);
+
+                var deleteJob = await _storage.DeleteJobAsync(key);
+                if (!deleteJob.success) throw new DeleteJobException(key);
+
+                return (unscheduledJob.success, unscheduledJob.message);
+            }
+            catch (DeleteJobException e)
+            {
+                _logger.LogError(e.Message);
+                await Task.Delay(1500);
+
+                var deleteJob = await _storage.DeleteJobAsync(key);
+                if (deleteJob.success) return (deleteJob.success, deleteJob.message);
+
+                var counter = 0;
+                while (counter <= 3 || deleteJob.success)
+                {
+                    await Task.Delay(1500);
+                    deleteJob = await _storage.DeleteJobAsync(key);
+                    counter++;
+                }
+
+                if (deleteJob.success)
+                {
+                    _logger.LogError($"Job {key} was successfully deleted while {nameof(DeleteJobException)}");
+                    return (deleteJob.success, deleteJob.message);
+                }
+
+                _logger.LogError(e.Message);
+                throw;
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw;
+            }
+        }
+        
         public async Task<(bool success, string message)> RescheduleJobAsync(Job job)
         {
             try
             {
-                var deleteJob = await _storage.DeleteJobAsync(job.Key);
-                if (!deleteJob.success)
-                {
-                    if (deleteJob.message != "Key not exists" || deleteJob.message != "File not exists")
-                    {
-                        return (deleteJob.success, deleteJob.message);
-                    }
-                }
+                var unscheduledJob = await UnscheduleJobAsync(job.Key);
 
-                var unscheduledJob = await _scheduler.UnscheduleJobByIdAsync(job.Key);
-                if (!unscheduledJob.success) return (unscheduledJob.success, unscheduledJob.message);
+                var scheduledJob = await ScheduleJobAsync(job);
 
-                var saveJob = await _storage.SaveJobAsync(JsonSerializer.Serialize(job), job.Key);
-                if (!saveJob.success) return (saveJob.success, saveJob.message);
-
-                var addJob = await _scheduler.ScheduleJobAsync(job);
-                if (addJob.success) return (addJob.success, addJob.message);
-
-                //TODO: Again
-
-                return (addJob.success, addJob.message);
+                return (scheduledJob.success, scheduledJob.message);
             }
             catch (Exception e)
             {
@@ -85,44 +128,28 @@ namespace JobManagmentSystem.Scheduler
             }
         }
 
-        public async Task<(bool success, string message)> UnscheduleJobByIdAsync(string key)
+        public async Task<(bool success, string message, string job)> GetJobAsync(string key)
         {
             try
             {
-                var deleteJob = await _storage.DeleteJobAsync(key);
-                if (!deleteJob.success) return (deleteJob.success, deleteJob.message);
+                var scheduledJob = await _scheduler.GetJobAsync(key);
 
-                //TODO: check for exist in schedule and return not exists if false in both?
+                var savedJob = await _storage.GetJobAsync(key);
 
-                var unscheduledJob = await _scheduler.UnscheduleJobByIdAsync(key);
-                if (unscheduledJob.success) return (unscheduledJob.success, unscheduledJob.message);
+                if (scheduledJob.success && !savedJob.success)
+                    return (false, $"Job {key} scheduled, by has no saved data", null);
 
-                return (unscheduledJob.success, "Error while try to unschedule job");
+                if (!scheduledJob.success && savedJob.success)
+                    return (false, $"Job {key} not scheduled, by has saved data", savedJob.job);
+
+                if (!savedJob.success && !scheduledJob.success) throw new NotFoundException(key);
+
+                return (savedJob.success, savedJob.message, savedJob.job);
             }
             catch (Exception e)
             {
                 _logger.LogError(e.Message);
-                return (false, e.Message);
-            }
-        }
-
-        //TODO: do i really need unschedule all jobs?
-        public async Task<(bool success, string message)> UnscheduleAllJobsAsync()
-        {
-            try
-            {
-                var unscheduledJobs = await _scheduler.UnscheduleAllJobsAsync();
-                if (!unscheduledJobs.success) return (unscheduledJobs.success, unscheduledJobs.message);
-
-                var deletedJobs = await _storage.DeleteAllJobAsync();
-                if (!deletedJobs.success) return (deletedJobs.success, deletedJobs.message);
-
-                return (unscheduledJobs.success, unscheduledJobs.message);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e.Message);
-                return (false, e.Message);
+                throw;
             }
         }
     }
