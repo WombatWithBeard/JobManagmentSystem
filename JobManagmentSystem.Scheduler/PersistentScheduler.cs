@@ -36,65 +36,25 @@ namespace JobManagmentSystem.Scheduler
 
                 return (addJob.success, addJob.message);
             }
-            catch (SaveJobException e)
-            {
-                _logger.LogError(e.Message);
-
-                TryUnscheduleJob(job.Key);
-
-                throw;
-                //TODO: exception while catch?
-            }
             catch (Exception e)
             {
                 _logger.LogError(e.Message);
+                await UnscheduleJobAsync(job.Key);
                 throw;
             }
-        }
-
-        private async void TryUnscheduleJob(string jobKey)
-        {
-            var unscheduledJob = await _scheduler.UnscheduleJobAsync(jobKey);
-            if (unscheduledJob.success)
-            {
-                _logger.LogError($"Job {jobKey} was successfully unscheduled while SaveJobException");
-                return;
-            }
-
-            var counter = 0;
-            while (counter <= 3 || unscheduledJob.success)
-            {
-                await Task.Delay(1500);
-                unscheduledJob = await _scheduler.UnscheduleJobAsync(jobKey);
-                counter++;
-            }
-
-            _logger.LogError(unscheduledJob.success
-                ? $"Job {jobKey} was successfully unscheduled while {nameof(SaveJobException)}"
-                : $"Job {jobKey} unscheduled while SaveJobException was failed");
         }
 
         public async Task<(bool success, string message)> UnscheduleJobAsync(string key)
         {
             try
             {
-                var unscheduledJob = await _scheduler.UnscheduleJobAsync(key);
-                if (unscheduledJob.success) throw new UnscheduleJobException(key);
+                var unscheduledJob = await TryUnscheduleJob(key);
+                var deleteJob = await TryDeleteJob(key);
 
-                var deleteJob = await _storage.DeleteJobAsync(key);
+                if (unscheduledJob.success) throw new UnscheduleJobException(key);
                 if (!deleteJob.success) throw new DeleteJobException(key);
 
                 return (unscheduledJob.success, unscheduledJob.message);
-            }
-            catch (DeleteJobException e)
-            {
-                _logger.LogError(e.Message);
-
-                var result = await TryDeleteJob(key);
-                if (result.success)
-                    return (result.success, result.message);
-
-                throw;
             }
             catch (Exception e)
             {
@@ -103,10 +63,32 @@ namespace JobManagmentSystem.Scheduler
             }
         }
 
+        private async Task<(bool success, string message)> TryUnscheduleJob(string key)
+        {
+            var unscheduledJob = await _scheduler.UnscheduleJobAsync(key);
+            if (unscheduledJob.success)
+            {
+                _logger.LogError($"Job {key} was successfully unscheduled during exception");
+                return (true, $"Job {key} was successfully unscheduled during exception");
+            }
+
+            var counter = 0;
+            while (counter <= 3 || unscheduledJob.success)
+            {
+                await Task.Delay(1500);
+                unscheduledJob = await _scheduler.UnscheduleJobAsync(key);
+                counter++;
+            }
+
+            _logger.LogError(unscheduledJob.success
+                ? $"Job {key} was successfully unscheduled during exception"
+                : $"Job {key} unscheduling during exception was failed");
+
+            return (unscheduledJob.success, unscheduledJob.message);
+        }
+
         private async Task<(bool success, string message)> TryDeleteJob(string key)
         {
-            await Task.Delay(1500);
-
             var deleteJob = await _storage.DeleteJobAsync(key);
             if (deleteJob.success) return (deleteJob.success, deleteJob.message);
 
@@ -118,13 +100,11 @@ namespace JobManagmentSystem.Scheduler
                 counter++;
             }
 
-            if (deleteJob.success)
-            {
-                _logger.LogError($"Job {key} was successfully deleted while {nameof(DeleteJobException)}");
-                return (deleteJob.success, deleteJob.message);
-            }
+            _logger.LogError(deleteJob.success
+                ? $"Job {key} was successfully deleted during exception"
+                : $"Job {key} deleting during exception was failed");
 
-            return (false, null);
+            return (deleteJob.success, deleteJob.message);
         }
 
         public async Task<(bool success, string message)> RescheduleJobAsync(Job job)
