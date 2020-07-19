@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -111,12 +110,9 @@ namespace JobManagmentSystem.Scheduler
         {
             try
             {
-                //TODO: 
-                var unscheduledJob = await UnscheduleJobAsync(job.Key);
+                await UnscheduleJobAsync(job.Key);
 
-                var scheduledJob = await ScheduleJobAsync(job);
-
-                return (scheduledJob.success, scheduledJob.message);
+                return await ScheduleJobAsync(job);
             }
             catch (Exception e)
             {
