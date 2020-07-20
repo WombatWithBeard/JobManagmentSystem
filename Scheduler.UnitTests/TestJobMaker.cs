@@ -14,5 +14,15 @@ namespace Scheduler.UnitTests
                 "Console",
                 new object());
         }
+
+        public Job CreateTestJob(string jobKey)
+        {
+            return new Job(new TestJob("Valid result"),
+                DateTime.Now,
+                4,
+                10,
+                "Console",
+                new object(), jobKey);
+        }
     }
 }

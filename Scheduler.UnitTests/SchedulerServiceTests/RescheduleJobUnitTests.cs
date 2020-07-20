@@ -5,12 +5,12 @@ using Xunit;
 
 namespace Scheduler.UnitTests.SchedulerServiceTests
 {
-    public class DeleteJobUnitTests
+    public class RescheduleJobUnitTests
     {
         private readonly IScheduler _scheduler;
         private readonly TestJobMaker _jobMaker;
 
-        public DeleteJobUnitTests()
+        public RescheduleJobUnitTests()
         {
             _jobMaker = new TestJobMaker();
             _scheduler =
@@ -18,29 +18,33 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
         }
 
         [Fact]
-        public async Task DeleteJob_ValidResult()
+        public async Task RescheduleJob_ValidResult()
+        {
+            //Arrange
+            var job = _jobMaker.CreateTestJob();
+            var updateJob = _jobMaker.CreateTestJob(job.Key);
+
+            //Act
+            await _scheduler.ScheduleJobAsync(job);
+            var (success, message) = await _scheduler.RescheduleJobAsync(updateJob);
+
+            //Assert
+            Assert.True(success);
+            Assert.Equal($"Job {job.Key} was successfully scheduled", message);
+        }
+
+        [Fact]
+        public async Task RescheduleJobWithEmptyScheduleAndPersistence_ValidResult()
         {
             //Arrange
             var job = _jobMaker.CreateTestJob();
 
             //Act
-            await _scheduler.ScheduleJobAsync(job);
-            var (success, message) = await _scheduler.UnscheduleJobAsync(job.Key);
+            var (success, message) = await _scheduler.RescheduleJobAsync(job);
 
             //Assert
             Assert.True(success);
-            Assert.Equal($"Job {job.Key} was successfully unscheduled", message);
-        }
-
-        [Fact]
-        public async Task DeleteJob_SchedulerIsEmptyResult()
-        {
-            //Act
-            var (success, message) = await _scheduler.UnscheduleJobAsync("key");
-
-            //Assert
-            Assert.True(success);
-            Assert.Equal("Scheduler is empty", message);
+            Assert.Equal($"Job {job.Key} was successfully scheduled", message);
         }
     }
 }

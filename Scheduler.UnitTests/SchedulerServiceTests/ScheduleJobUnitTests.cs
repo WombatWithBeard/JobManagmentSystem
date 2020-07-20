@@ -5,15 +5,16 @@ using Xunit;
 
 namespace Scheduler.UnitTests.SchedulerServiceTests
 {
-    public class AddJobUnitTests
+    public class ScheduleJobUnitTests
     {
         private readonly IScheduler _scheduler;
         private readonly TestJobMaker _jobMaker;
 
-        public AddJobUnitTests()
+        public ScheduleJobUnitTests()
         {
             _jobMaker = new TestJobMaker();
-            _scheduler = new JobManagmentSystem.Scheduler.Scheduler(NullLogger<JobManagmentSystem.Scheduler.Scheduler>.Instance);
+            _scheduler =
+                new JobManagmentSystem.Scheduler.Scheduler(NullLogger<JobManagmentSystem.Scheduler.Scheduler>.Instance);
         }
 
         [Fact]

@@ -5,39 +5,44 @@ using Xunit;
 
 namespace Scheduler.UnitTests.SchedulerServiceTests
 {
-    public class DeleteAllJobsUnitTests
+    public class GetJobsArrayUnitTests
     {
         private readonly IScheduler _scheduler;
         private readonly TestJobMaker _jobMaker;
 
-        public DeleteAllJobsUnitTests()
+        public GetJobsArrayUnitTests()
         {
             _jobMaker = new TestJobMaker();
-            _scheduler = new JobManagmentSystem.Scheduler.Scheduler(NullLogger<JobManagmentSystem.Scheduler.Scheduler>.Instance);
+            _scheduler =
+                new JobManagmentSystem.Scheduler.Scheduler(NullLogger<JobManagmentSystem.Scheduler.Scheduler>.Instance);
         }
 
         [Fact]
-        public async Task DeleteJob_ValidResult()
+        public async Task GetJobsArray_ValidResult()
         {
             //Act
             await _scheduler.ScheduleJobAsync(_jobMaker.CreateTestJob());
             await _scheduler.ScheduleJobAsync(_jobMaker.CreateTestJob());
             await _scheduler.ScheduleJobAsync(_jobMaker.CreateTestJob());
-            var (success, message) = await _scheduler.UnscheduleAllJobsAsync();
+            await _scheduler.ScheduleJobAsync(_jobMaker.CreateTestJob());
+            await _scheduler.ScheduleJobAsync(_jobMaker.CreateTestJob());
+            var (success, message, jobs) = await _scheduler.GetJobsArrayAsync();
 
             //Assert
             Assert.True(success);
-            Assert.Equal("All job was successfully unscheduled", message);
+            Assert.Equal(5, jobs.Length);
+            Assert.Equal("That's ur jobs, boy", message);
         }        
         
         [Fact]
-        public async Task DeleteJob_ScheduleIsEmptyResult()
+        public async Task GetJobsArray_EmptyResult()
         {
             //Act
-            var (success, message) = await _scheduler.UnscheduleAllJobsAsync();
+            var (success, message, jobs) = await _scheduler.GetJobsArrayAsync();
 
             //Assert
-            Assert.True(success);
+            Assert.False(success);
+            Assert.Null(jobs);
             Assert.Equal("Scheduler is empty", message);
         }
     }

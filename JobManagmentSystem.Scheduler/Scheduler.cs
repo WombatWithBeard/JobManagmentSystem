@@ -118,7 +118,7 @@ namespace JobManagmentSystem.Scheduler
             {
                 return _timers.Count <= 0
                     ? (false, "Scheduler is empty", null)
-                    : (true, "All job was successfully unscheduled", await Task.Run(() => _timers.Keys.ToArray()));
+                    : (true, "That's ur jobs, boy", await Task.Run(() => _timers.Keys.ToArray()));
             }
             catch (Exception e)
             {
