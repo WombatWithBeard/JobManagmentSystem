@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using JobManagmentSystem.Application;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,15 +21,15 @@ namespace JobManagmentSystem.WebApi.Controllers
         {
             var createJob = await _service.ScheduleJobAsync(dto);
 
-            return Ok(createJob.ToString());
+            return Ok(createJob.ToTuple());
         }
 
-        [HttpDelete]
-        public async Task<IActionResult> Delete([FromBody] string key)
+        [HttpDelete("{key}")]
+        public async Task<IActionResult> Delete(string key)
         {
             var deleteJob = await _service.UncheduleJobAsync(key);
 
-            return Ok(deleteJob.ToString());
+            return Ok(deleteJob.ToTuple());
         }
 
         [HttpPost]
@@ -36,23 +37,23 @@ namespace JobManagmentSystem.WebApi.Controllers
         {
             var scheduleJob = await _service.RescheduleJobAsync(dto);
 
-            return Ok(scheduleJob.ToString());
+            return Ok(scheduleJob.ToTuple());
         }
 
-        [HttpGet("/{key}")]
-        public async Task<IActionResult> Get([FromBody] string key)
+        [HttpGet("{key}")]
+        public async Task<IActionResult> Get(string key)
         {
-            var getJob = await _service.GetScheduledJobByIdAsync(key);
+            var getJob = await _service.GetJobByIdAsync(key);
 
-            return Ok(getJob.ToString());
+            return Ok(getJob.ToTuple());
         }
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            var jobs = await _service.GetAllSchedulerJobsAsync();
+            var jobs = await _service.GetAllJobsAsync();
 
-            return Ok(jobs.ToString());
+            return Ok(jobs.ToTuple());
         }
     }
 }

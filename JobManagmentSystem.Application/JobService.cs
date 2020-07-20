@@ -29,7 +29,7 @@ namespace JobManagmentSystem.Application
                 var task = _factory.Create(dto.TaskName);
 
                 var job = new Job(task, Convert.ToDateTime(dto.TimeStart), dto.Interval, dto.IntervalType,
-                    dto.TaskName, dto.TaskParameters);
+                    dto.TaskName, dto.TaskParameters, null, dto.Enabled);
 
                 return await _scheduler.ScheduleJobAsync(job);
             }
@@ -60,7 +60,7 @@ namespace JobManagmentSystem.Application
                 var task = _factory.Create(dto.TaskName);
 
                 var job = new Job(task, Convert.ToDateTime(dto.TimeStart), dto.Interval, dto.IntervalType,
-                    dto.TaskName, dto.TaskParameters);
+                    dto.TaskName, dto.TaskParameters, dto.Key, dto.Enabled);
 
                 return await _scheduler.RescheduleJobAsync(job);
             }
@@ -104,11 +104,11 @@ namespace JobManagmentSystem.Application
         //     }
         // }
 
-        public async Task<(bool success, string message, string job)> GetScheduledJobByIdAsync(string key)
+        public async Task<(bool success, string message, string job)> GetJobByIdAsync(string key)
         {
             try
             {
-                return await _storage.GetJobAsync(key);
+                return await _scheduler.GetJobAsync(key);
             }
             catch (Exception e)
             {
@@ -117,11 +117,11 @@ namespace JobManagmentSystem.Application
             }
         }
 
-        public async Task<(bool success, string message, string[] jobs)> GetAllSchedulerJobsAsync()
+        public async Task<(bool success, string message, string[] jobs)> GetAllJobsAsync()
         {
             try
             {
-                return await _storage.GetJobsAsync();
+                return await _scheduler.GetJobsArrayAsync();
             }
             catch (Exception e)
             {

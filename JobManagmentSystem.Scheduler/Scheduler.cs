@@ -26,9 +26,11 @@ namespace JobManagmentSystem.Scheduler
             {
                 if (_timers.ContainsKey(job.Key)) return (false, $"Job {job.Key} already exists");
 
-                var timer = CreateNewTimer(job);
-
-                var addResult = _timers.TryAdd(job.Key, timer);
+                bool addResult;
+                await using (var timer = CreateNewTimer(job))
+                {
+                    addResult = await Task.Run(() => _timers.TryAdd(job.Key, timer));
+                }
 
                 return addResult
                     ? (true, $"Job {job.Key} was successfully scheduled")
@@ -45,9 +47,9 @@ namespace JobManagmentSystem.Scheduler
         {
             try
             {
-                if (string.IsNullOrEmpty(key)) return (false, "Key is empty");
+                if (string.IsNullOrEmpty(key)) return (false, "Key was empty");
 
-                if (_timers.Count <= 0) return (true, "Scheduler is empty");
+                if (_timers.Count <= 0) return (true, "Scheduler was empty");
 
                 if (!_timers.ContainsKey(key)) return (true, $"Job {key} does not scheduled");
 
@@ -76,9 +78,11 @@ namespace JobManagmentSystem.Scheduler
                     if (!removeResult) return (false, $"Remove job {job.Key} from scheduler was failed");
                 }
 
-                var timer = CreateNewTimer(job);
-
-                var addResult = _timers.TryAdd(job.Key, timer);
+                bool addResult;
+                await using (var timer = CreateNewTimer(job))
+                {
+                    addResult = await Task.Run(() => _timers.TryAdd(job.Key, timer));
+                }
 
                 return addResult
                     ? (true, $"Job {job.Key} was successfully scheduled")
@@ -114,7 +118,7 @@ namespace JobManagmentSystem.Scheduler
             {
                 return _timers.Count <= 0
                     ? (false, "Scheduler is empty", null)
-                    : (true, "All job was successfully unscheduled", _timers.Keys.ToArray());
+                    : (true, "All job was successfully unscheduled", await Task.Run(() => _timers.Keys.ToArray()));
             }
             catch (Exception e)
             {

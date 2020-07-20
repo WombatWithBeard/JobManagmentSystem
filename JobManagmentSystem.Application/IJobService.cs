@@ -7,7 +7,7 @@ namespace JobManagmentSystem.Application
         Task<(bool success, string message)> ScheduleJobAsync(JobDto dto);
         Task<(bool success, string message)> RescheduleJobAsync(JobDto dto);
         Task<(bool success, string message)> UncheduleJobAsync(string key);
-        Task<(bool success, string message, string job)> GetScheduledJobByIdAsync(string key);
-        Task<(bool success, string message, string[] jobs)> GetAllSchedulerJobsAsync();
+        Task<(bool success, string message, string job)> GetJobByIdAsync(string key);
+        Task<(bool success, string message, string[] jobs)> GetAllJobsAsync();
     }
 }
