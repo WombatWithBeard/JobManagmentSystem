@@ -25,7 +25,7 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
 
             //Act
             await _scheduler.ScheduleJobAsync(newJob);
-            var (success, message, job) = await _scheduler.GetJobAsync(newJob.Key);
+            var (success, message, job) = await _scheduler.GetJob(newJob.Key);
 
             //Assert
             Assert.True(success);
@@ -36,7 +36,7 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
         public async Task GetJobById_SchedulerIsEmptyResult()
         {
             //Act
-            var (success, message, job) = await _scheduler.GetJobAsync("Test");
+            var (success, message, job) = await _scheduler.GetJob("Test");
 
             //Assert
             Assert.False(success);
@@ -51,7 +51,7 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
 
             //Act
             await _scheduler.ScheduleJobAsync(newJob);
-            var (success, message, job) = await _scheduler.GetJobAsync("Test");
+            var (success, message, job) = await _scheduler.GetJob("Test");
 
             //Assert
             Assert.False(success);

@@ -1,8 +1,8 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
-using JobManagmentSystem.Scheduler.Common.Exception;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using JobManagmentSystem.Scheduler.Common.Models;
 using Microsoft.Extensions.Logging;
@@ -14,6 +14,7 @@ namespace JobManagmentSystem.Scheduler
         private readonly Scheduler _scheduler;
         private readonly IPersistStorage _storage;
         private readonly ILogger<PersistentScheduler> _logger;
+
 
         public PersistentScheduler(Scheduler scheduler, IPersistStorage storage,
             ILogger<PersistentScheduler> logger)
@@ -27,7 +28,7 @@ namespace JobManagmentSystem.Scheduler
         {
             try
             {
-                if (job.Enabled)
+                if (job.Status)
                 {
                     var addJob = await _scheduler.ScheduleJobAsync(job);
                     if (!addJob.success) throw new ScheduleJobException(job.Name, job.Key);
@@ -144,11 +145,11 @@ namespace JobManagmentSystem.Scheduler
             }
         }
 
-        public async Task<(bool success, string message, string job)> GetJobAsync(string key)
+        public async Task<(bool success, string message, Job job)> GetJob(string key)
         {
             try
             {
-                var scheduledJob = await _scheduler.GetJobAsync(key);
+                var scheduledJob = await _scheduler.GetJob(key);
 
                 var savedJob = await _storage.GetJobAsync(key);
 
@@ -156,11 +157,11 @@ namespace JobManagmentSystem.Scheduler
                     return (false, $"Job {key} scheduled, by has no saved data", null);
 
                 if (!scheduledJob.success && savedJob.success)
-                    return (false, $"Job {key} not scheduled, by has saved data", savedJob.job);
+                    return (false, $"Job {key} not scheduled, by has saved data", Job.Empty);
 
                 if (!savedJob.success && !scheduledJob.success) throw new NotFoundException(key);
 
-                return (savedJob.success, savedJob.message, savedJob.job);
+                return (savedJob.success, savedJob.message, Job.Empty);
             }
             catch (Exception e)
             {
@@ -169,24 +170,22 @@ namespace JobManagmentSystem.Scheduler
             }
         }
 
-        public async Task<(bool success, string message, string[] jobs)> GetJobsArrayAsync()
+        public async Task<(bool success, string message, Job[] jobs)> GetJobs()
         {
             try
             {
-                var schedulerJobs = await _scheduler.GetJobsArrayAsync();
-                var persistentJobs = await _storage.GetJobsAsync();
+                (bool schedulerOk, string message, Job[] runningJobs) = await _scheduler.GetJobs();
+                (bool storageOk, string msg, string[] persistedJobs) = await _storage.GetJobsAsync();
 
-                if (!schedulerJobs.success && !persistentJobs.success) return (false, "No jobs was found", null);
+                if (!schedulerOk && !storageOk) return (false, "No jobs was found", null);
 
-                if (schedulerJobs.success && !persistentJobs.success)
-                    return (true, "Job id only from scheduler", schedulerJobs.jobs);
+                if (schedulerOk && !storageOk)
+                    return (true, "Job id only from scheduler", runningJobs);
 
-                if (!schedulerJobs.success && persistentJobs.success)
-                    return (true, "Jobs from storage", persistentJobs.jobs);
+                var persistedJobsS = MapToJobs(persistedJobs);
+                if (!schedulerOk) return (true, "Jobs from storage", persistedJobsS);
 
-                var jobs = persistentJobs.jobs.Union(schedulerJobs.jobs).ToArray(); //TODO: bullshit, doubling data
-
-                return (true, "Jobs from storage, key from scheduler", jobs);
+                return (true, "Jobs from storage and scheduler", AggregatedJobs(runningJobs, persistedJobsS));
             }
             catch (Exception e)
             {
@@ -194,5 +193,39 @@ namespace JobManagmentSystem.Scheduler
                 throw;
             }
         }
+
+        private Job[] AggregatedJobs(Job[] runningJobs, Job[] persistedJobsS)
+        {
+            var result = new List<Job>();
+
+            foreach (var runningJob in runningJobs)
+            {
+                //Test
+                var a = persistedJobsS.Contains(runningJob);
+
+                if (persistedJobsS.Any(j => j.Key == runningJob.Key))
+                {
+                    runningJob.Status = Job.JobStatusConsts.PersistAndScheduled;
+                    result.Add(runningJob);
+                }
+                else
+                {
+                    runningJob.Status = Job.JobStatusConsts.ScheduledNotPersist;
+                    result.Add(runningJob);
+                }
+            }
+
+            foreach (var job in persistedJobsS)
+            {
+                if (runningJobs.Contains(job)) continue;
+                job.Status = Job.JobStatusConsts.PersistNotScheduled;
+                result.Add(job);
+            }
+
+            return result.ToArray();
+        }
+
+        private Job[] MapToJobs(string[] persistedJobs) =>
+            persistedJobs.Select(j => JsonSerializer.Deserialize<Job>(j)).ToArray();
     }
 }

@@ -2,15 +2,23 @@
 using ConsoleWriterJobService;
 using FileCopyJobService;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace JobManagmentSystem.Application
 {
     public class TaskFactory
     {
+        private readonly ILogger _logger;
+
+        public TaskFactory(ILogger logger)
+        {
+            _logger = logger;
+        }
+
         public IJobTask Create(string name) => name switch
         {
-            TaskNameConstants.FileCopyJob => new FileCopyJob(),
-            TaskNameConstants.ConsoleWriteJob => new ConsoleWriteJob(),
+            TaskNameConstants.FileCopyJob => new FileCopyJobTask(_logger),
+            TaskNameConstants.ConsoleWriteJob => new ConsoleWriteJobTask(_logger),
             _ => throw new Exception("Task with this alias was not found")
         };
     }

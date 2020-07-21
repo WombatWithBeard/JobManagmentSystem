@@ -6,5 +6,6 @@ namespace JobManagmentSystem.Scheduler.Common.Interfaces
     public interface IJobTask
     {
         Task Invoke(object? state);
+
     }
 }

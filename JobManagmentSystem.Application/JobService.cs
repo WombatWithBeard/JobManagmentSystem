@@ -10,7 +10,6 @@ namespace JobManagmentSystem.Application
     {
         private readonly IScheduler _scheduler;
         private readonly TaskFactory _factory;
-        private readonly IPersistStorage _storage;
         private readonly ILogger<JobService> _logger;
 
         public JobService(IScheduler scheduler, TaskFactory factory, IPersistStorage storage,
@@ -18,7 +17,6 @@ namespace JobManagmentSystem.Application
         {
             _scheduler = scheduler;
             _factory = factory;
-            _storage = storage;
             _logger = logger;
         }
 
@@ -29,7 +27,7 @@ namespace JobManagmentSystem.Application
                 var task = _factory.Create(dto.TaskName);
 
                 var job = new Job(task, Convert.ToDateTime(dto.TimeStart), dto.Interval, dto.IntervalType,
-                    dto.TaskName, dto.TaskParameters, null, dto.Enabled);
+                    dto.TaskName, dto.TaskParameters, null);
 
                 return await _scheduler.ScheduleJobAsync(job);
             }
@@ -60,7 +58,7 @@ namespace JobManagmentSystem.Application
                 var task = _factory.Create(dto.TaskName);
 
                 var job = new Job(task, Convert.ToDateTime(dto.TimeStart), dto.Interval, dto.IntervalType,
-                    dto.TaskName, dto.TaskParameters, dto.Key, dto.Enabled);
+                    dto.TaskName, dto.TaskParameters, dto.Key);
 
                 return await _scheduler.RescheduleJobAsync(job);
             }
@@ -104,11 +102,11 @@ namespace JobManagmentSystem.Application
         //     }
         // }
 
-        public async Task<(bool success, string message, string job)> GetJobByIdAsync(string key)
+        public async Task<(bool success, string message, Job job)> GetJobByIdAsync(string key)
         {
             try
             {
-                return await _scheduler.GetJobAsync(key);
+                return await _scheduler.GetJob(key);
             }
             catch (Exception e)
             {
@@ -117,11 +115,11 @@ namespace JobManagmentSystem.Application
             }
         }
 
-        public async Task<(bool success, string message, string[] jobs)> GetAllJobsAsync()
+        public async Task<(bool success, string message, Job[] jobs)> GetAllJobsAsync()
         {
             try
             {
-                return await _scheduler.GetJobsArrayAsync();
+                return await _scheduler.GetJobs();
             }
             catch (Exception e)
             {

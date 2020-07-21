@@ -15,17 +15,23 @@ namespace JobManagmentSystem.Scheduler.Common.Models
         public object TaskParameters { get; set; }
         public string Key { get; set; }
         public Schedule Schedule { get; set; }
-        public bool Enabled { get; set; }
+        public string Status { get; set; }
 
         public Job(IJobTask task, DateTime timeStart, double interval, int intervalType, string name,
-            object taskParameters, string key = null, bool enabled = true)
+            object taskParameters, string key = null)
         {
             Name = name;
             TaskParameters = taskParameters;
             Task = task;
             Schedule = new Schedule(timeStart, intervalType, interval);
             Key = key ?? Guid.NewGuid().ToString();
-            Enabled = enabled;
+        }
+        
+        public class JobStatusConsts
+        {
+            public const string PersistAndScheduled = "PersistAndScheduled";
+            public const string PersistNotScheduled = "PersistNotScheduled";
+            public const string ScheduledNotPersist = "ScheduledNotPersist";
         }
     }
 }

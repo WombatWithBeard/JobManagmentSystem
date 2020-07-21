@@ -26,7 +26,7 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
             await _scheduler.ScheduleJobAsync(_jobMaker.CreateTestJob());
             await _scheduler.ScheduleJobAsync(_jobMaker.CreateTestJob());
             await _scheduler.ScheduleJobAsync(_jobMaker.CreateTestJob());
-            var (success, message, jobs) = await _scheduler.GetJobsArrayAsync();
+            var (success, message, jobs) = await _scheduler.GetJobs();
 
             //Assert
             Assert.True(success);
@@ -38,7 +38,7 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
         public async Task GetJobsArray_EmptyResult()
         {
             //Act
-            var (success, message, jobs) = await _scheduler.GetJobsArrayAsync();
+            var (success, message, jobs) = await _scheduler.GetJobs();
 
             //Assert
             Assert.False(success);

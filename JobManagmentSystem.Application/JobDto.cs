@@ -8,6 +8,6 @@
         public double Interval { get; set; }
         public string TimeStart { get; set; }
         public object TaskParameters { get; set; }
-        public bool Enabled { get; set; }
+        public string Status { get; set; } //TODO: 
     }
 }

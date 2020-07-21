@@ -3,18 +3,26 @@ using System;
 using System.Text.Json;
 using System.Threading.Tasks;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
+using Microsoft.Extensions.Logging;
 
 namespace ConsoleWriterJobService
 {
-    public class ConsoleWriteJob : IJobTask
+    public class ConsoleWriteJobTask : IJobTask
     {
+        private readonly ILogger _logger;
+
+        public ConsoleWriteJobTask(ILogger logger)
+        {
+            _logger = logger;
+        }
+
         public Task Invoke(object? state)
         {
             try
             {
                 if (state == null)
                 {
-                    Console.WriteLine($"Job {nameof(ConsoleWriteJob)} required parameters are missing");
+                    _logger.LogError($"Job {nameof(ConsoleWriteJobTask)} required parameters are missing");
                     return Task.CompletedTask;
                 }
 
@@ -25,7 +33,7 @@ namespace ConsoleWriterJobService
             }
             catch (Exception e)
             {
-                Console.WriteLine(e.Message);
+                _logger.LogError(e.Message);
                 return Task.CompletedTask;
             }
         }
