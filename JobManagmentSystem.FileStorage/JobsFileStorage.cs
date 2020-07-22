@@ -90,8 +90,7 @@ namespace JobManagmentSystem.FileStorage
             {
                 var stringsJobs = await File.ReadAllLinesAsync(_path);
 
-                if (stringsJobs == null)
-                    return Result.Fail<Job[]>("Storage is empty");
+                if (stringsJobs == null) return Result.Fail<Job[]>("Storage is empty");
 
                 var jobs = stringsJobs.Select(j => JsonSerializer.Deserialize<Job>(j)).ToArray();
 

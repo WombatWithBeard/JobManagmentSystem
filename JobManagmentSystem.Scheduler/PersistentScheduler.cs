@@ -114,38 +114,37 @@ namespace JobManagmentSystem.Scheduler
                 AggregatedJobs(scheduledJobsResult.Value, savedJobsResult.Value));
         }
 
-        private Job[] AggregatedJobs(Job[] runningJobs, Job[] persistedJobsS)
+        private Job[] AggregatedJobs(Job[] scheduledJobs, Job[] persistedJobs)
         {
             //TODO: beautify this
-            if (runningJobs == null && persistedJobsS != null) return persistedJobsS;
-            if (persistedJobsS == null) return runningJobs;
+            if (scheduledJobs == null && persistedJobs != null) return persistedJobs; //TODO: persisted = true / scheduled = false
+            if (persistedJobs == null) return scheduledJobs; //TODO: persisted = false / scheduled = true
 
-            var runningJobsDict = runningJobs.ToDictionary(job => job.Key);
-            var persistedJobsDict = persistedJobsS.ToDictionary(job => job.Key);
+            var runningJobsDict = scheduledJobs.ToDictionary(job => job.Key);
+            var persistedJobsDict = persistedJobs.ToDictionary(job => job.Key);
 
-            var unionDict = runningJobsDict.Concat(persistedJobsDict);
+            var unionJobs = scheduledJobs.Union(persistedJobs).ToArray(); //TODO: Fuck
 
-            var keyValuePairs = unionDict.ToList();
-            foreach (var (key, value) in keyValuePairs)
+            foreach (var job in unionJobs)
             {
-                if (runningJobsDict.ContainsKey(key) && !persistedJobsDict.ContainsKey(key))
+                if (runningJobsDict.ContainsKey(job.Key) && !persistedJobsDict.ContainsKey(job.Key))
                 {
-                    value.Persisted = false;
-                    value.Scheduled = true;
+                    job.Persisted = false;
+                    job.Scheduled = true;
                 }
-                else if (!runningJobsDict.ContainsKey(key) && persistedJobsDict.ContainsKey(key))
+                else if (!runningJobsDict.ContainsKey(job.Key) && persistedJobsDict.ContainsKey(job.Key))
                 {
-                    value.Persisted = true;
-                    value.Scheduled = false;
+                    job.Persisted = true;
+                    job.Scheduled = false;
                 }
                 else
                 {
-                    value.Persisted = true;
-                    value.Scheduled = true;
+                    job.Persisted = true;
+                    job.Scheduled = true;
                 }
             }
 
-            return keyValuePairs.Select(s => s.Value).ToArray();
+            return unionJobs;
         }
     }
 }
