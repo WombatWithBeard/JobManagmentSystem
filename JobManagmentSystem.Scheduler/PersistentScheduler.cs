@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading.Tasks;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using JobManagmentSystem.Scheduler.Common.Results;
@@ -119,10 +120,8 @@ namespace JobManagmentSystem.Scheduler
         //TODO: beautify this
         private Job[] AggregatedJobs(Job[] scheduledJobs, Job[] persistedJobs)
         {
-            //TODO: persisted = true / scheduled = false
-            if (scheduledJobs == null && persistedJobs != null) return persistedJobs;
-            //TODO: persisted = false / scheduled = true
-            if (persistedJobs == null) return scheduledJobs;
+            if (scheduledJobs == null && persistedJobs != null) return ProcessedJobs(persistedJobs, 1);
+            if (persistedJobs == null) return ProcessedJobs(scheduledJobs, 0);
 
             var runningJobsDict = scheduledJobs.ToDictionary(job => job.Key);
             var persistedJobsDict = persistedJobs.ToDictionary(job => job.Key);
@@ -152,6 +151,25 @@ namespace JobManagmentSystem.Scheduler
             }
 
             return unionJobs.Values.ToArray();
+        }
+
+        private Job[] ProcessedJobs(Job[] jobs, int type)
+        {
+            var result = jobs.ToList();
+
+            //TODO: TYPE ?????? Enum?
+            if (type == 1)
+            {
+                result.ForEach(j => j.Persisted = true);
+                result.ForEach(j => j.Scheduled = false);
+            }
+            else
+            {
+                result.ForEach(j => j.Persisted = false);
+                result.ForEach(j => j.Scheduled = true);
+            }
+
+            return result.ToArray();
         }
     }
 }
