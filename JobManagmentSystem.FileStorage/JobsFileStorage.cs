@@ -1,9 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
+using JobManagmentSystem.Scheduler.Common.Results;
+using JobManagmentSystem.Scheduler.Models;
 using Microsoft.Extensions.Logging;
 
 namespace JobManagmentSystem.FileStorage
@@ -35,95 +37,87 @@ namespace JobManagmentSystem.FileStorage
             }
         }
 
-        public async Task<(bool success, string message)> SaveJobAsync(string jsonJob, string key)
+        public async Task<Result> SaveJobAsync(string jsonJob, string key)
         {
             try
             {
                 var jobs = await File.ReadAllLinesAsync(_path);
 
-                if (jobs.Any(j => j.Contains(key))) return (false, $"Key {key} already exists");
+                if (jobs.Any(j => j.Contains(key))) return Result.Fail($"Key {key} already exists");
 
                 await File.AppendAllLinesAsync(Directory.GetCurrentDirectory() + _fileName,
                     new[] {jsonJob});
 
-                return (true, $"Job {key} saved successfully");
+                return Result.Ok();
             }
             catch (Exception e)
             {
                 _logger.LogError(e.Message);
-                return (false, e.Message);
+                return Result.Fail(e.Message);
             }
         }
 
-        public async Task<(bool success, string message)> DeleteJobAsync(string key)
+        public async Task<Result> DeleteJobAsync(string key)
         {
             try
             {
                 var jobs = await File.ReadAllLinesAsync(_path);
 
-                if (!jobs.Any(j => j.Contains(key))) return (false, $"Key {key} not exists");
+                if (jobs == null) return Result.Ok("Storage is empty");
+
+                if (!jobs.Any(j => j.Contains(key))) return Result.Fail($"Key {key} not exists");
 
                 var newJobs = jobs.Where(j => !j.Contains(key));
 
                 await File.WriteAllLinesAsync(_path, newJobs);
 
-                return (true, $"Key {key} successfully deleted");
+                return Result.Ok($"Key {key} successfully deleted");
             }
             catch (Exception e)
             {
                 _logger.LogError(e.Message);
-                return (false, e.Message);
+                return Result.Fail(e.Message);
             }
         }
 
-        public async Task<(bool success, string message)> DeleteAllJobAsync()
+        public async Task<Result<Job[]>> GetJobsAsync()
         {
             try
             {
-                await File.WriteAllLinesAsync(_path, new List<string>());
+                var stringsJobs = await File.ReadAllLinesAsync(_path);
 
-                return (true, "All jobs was deleted");
+                if (stringsJobs == null) 
+                    return Result.Fail<Job[]>("Storage is empty");
+
+                var jobs = stringsJobs.Select(j => JsonSerializer.Deserialize<Job>(j)).ToArray();
+
+                return Result.Ok(jobs);
             }
             catch (Exception e)
             {
                 _logger.LogError(e.Message);
-                return (false, e.Message);
+                return Result.Fail<Job[]>(e.Message);
             }
         }
 
-        public async Task<(bool success, string message, string[] jobs)> GetJobsAsync()
-        {
-            try
-            {
-                var result = await File.ReadAllLinesAsync(_path);
-
-                return (true, "File read successfully", result);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e.Message);
-                return (false, e.Message, null);
-            }
-        }
-
-        public async Task<(bool success, string message, string job)> GetJobAsync(string key)
+        public async Task<Result<Job>> GetJobAsync(string key)
         {
             try
             {
                 var jobs = await File.ReadAllLinesAsync(_path);
 
-                if (jobs == null) return (false, "Jobs list was empty", null);
+                if (jobs == null) return Result.Fail<Job>("Jobs list was empty");
 
-                var job = jobs.FirstOrDefault(j => j.Contains(key));
+                var job = JsonSerializer.Deserialize<Job>(jobs.FirstOrDefault(j => j.Contains(key)));
 
                 return job == null
-                    ? (false, "Jobs list was empty", null)
-                    : (true, "There is ur job, boy", job);
+                    ? Result.Fail<Job>("Jobs list was empty")
+                    : Result.Ok(job);
             }
             catch (Exception e)
             {
                 _logger.LogError(e.Message);
-                return (false, e.Message, null);
+                return Result.Fail<Job>(e.Message);
             }
         }
     }

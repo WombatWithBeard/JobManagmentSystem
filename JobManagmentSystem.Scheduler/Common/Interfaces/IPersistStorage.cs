@@ -1,12 +1,14 @@
 ﻿using System.Threading.Tasks;
+using JobManagmentSystem.Scheduler.Common.Results;
+using JobManagmentSystem.Scheduler.Models;
 
 namespace JobManagmentSystem.Scheduler.Common.Interfaces
 {
     public interface IPersistStorage
     {
-        Task<(bool success, string message)> SaveJobAsync(string jsonJob, string key);
-        Task<(bool success, string message)> DeleteJobAsync(string key);
-        Task<(bool success, string message, string[] jobs)> GetJobsAsync();
-        Task<(bool success, string message, string job)> GetJobAsync(string key);
+        Task<Result> SaveJobAsync(string jsonJob, string key);
+        Task<Result> DeleteJobAsync(string key);
+        Task<Result<Job[]>> GetJobsAsync();
+        Task<Result<Job>> GetJobAsync(string key);
     }
 }

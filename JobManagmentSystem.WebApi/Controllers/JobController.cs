@@ -21,7 +21,7 @@ namespace JobManagmentSystem.WebApi.Controllers
         {
             var createJob = await _service.ScheduleJobAsync(dto);
 
-            return Ok(createJob.ToTuple());
+            return Ok(createJob);
         }
 
         [HttpDelete("{key}")]
@@ -29,7 +29,7 @@ namespace JobManagmentSystem.WebApi.Controllers
         {
             var deleteJob = await _service.UncheduleJobAsync(key);
 
-            return Ok(deleteJob.ToTuple());
+            return Ok(deleteJob);
         }
 
         [HttpPost]
@@ -37,7 +37,7 @@ namespace JobManagmentSystem.WebApi.Controllers
         {
             var scheduleJob = await _service.RescheduleJobAsync(dto);
 
-            return Ok(scheduleJob.ToTuple());
+            return Ok(scheduleJob);
         }
 
         [HttpGet("{key}")]
@@ -45,7 +45,7 @@ namespace JobManagmentSystem.WebApi.Controllers
         {
             var getJob = await _service.GetJobByIdAsync(key);
 
-            return Ok(getJob.ToTuple());
+            return Ok(getJob);
         }
 
         [HttpGet]
@@ -53,7 +53,7 @@ namespace JobManagmentSystem.WebApi.Controllers
         {
             var jobs = await _service.GetAllJobsAsync();
 
-            return Ok(jobs.ToTuple());
+            return Ok(jobs);
         }
     }
 }

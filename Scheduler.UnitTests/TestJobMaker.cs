@@ -1,5 +1,5 @@
 ﻿using System;
-using JobManagmentSystem.Scheduler.Common.Models;
+using JobManagmentSystem.Scheduler.Models;
 
 namespace Scheduler.UnitTests
 {

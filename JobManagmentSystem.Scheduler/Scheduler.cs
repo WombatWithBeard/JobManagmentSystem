@@ -3,7 +3,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
-using JobManagmentSystem.Scheduler.Common.Models;
+using JobManagmentSystem.Scheduler.Common.Results;
+using JobManagmentSystem.Scheduler.Models;
 using Microsoft.Extensions.Logging;
 
 namespace JobManagmentSystem.Scheduler
@@ -19,66 +20,70 @@ namespace JobManagmentSystem.Scheduler
             _timers = new Dictionary<string, (Timer, Job)>();
         }
 
-        public async Task<(bool success, string message)> ScheduleJobAsync(Job job)
+        public async Task<Result> ScheduleJobAsync(Job job)
         {
-            if (_timers.ContainsKey(job.Key)) return (false, $"Job {job.Key} already exists");
+            if (_timers.ContainsKey(job.Key)) return Result.Fail($"Job {job.Key} already scheduled");
 
             var timer = CreateNewTimer(job);
-
+            
             var addResult = _timers.TryAdd(job.Key, (timer, job));
 
             return addResult
-                ? (true, $"Job {job.Key} was successfully scheduled")
-                : (false, $"Job {job.Key} schedule failed");
+                ? Result.Ok().OnSuccess(() => _logger.LogInformation($"Job {job.Key} was successfully scheduled"))
+                : Result.Fail($"Job {job.Key} schedule failed");
         }
 
-        public async Task<(bool success, string message)> UnscheduleJobAsync(string key)
+        public async Task<Result> UnscheduleJobAsync(string key)
         {
-            if (string.IsNullOrEmpty(key)) return (false, "Key was empty");
+            if (string.IsNullOrEmpty(key)) return Result.Fail("Key was empty");
 
-            if (_timers.Count == 0) return (true, "Scheduler was empty");
+            if (_timers.Count == 0) return Result.Ok();
 
-            if (!_timers.ContainsKey(key)) return (true, $"Job {key} does not scheduled");
+            if (!_timers.ContainsKey(key)) return Result.Ok();
 
             await _timers.First(pair => pair.Key == key && pair.Value.Item1 != null).Value.Item1.DisposeAsync();
 
             var removeResult = _timers.Remove(key);
 
             return removeResult
-                ? (true, $"Job {key} was successfully unscheduled")
-                : (false, $"Remove job {key} from scheduler was failed");
+                ? Result.Ok().OnSuccess(() => _logger.LogInformation($"Job {key} was successfully unscheduled"))
+                : Result.Fail($"Remove job {key} from scheduler was failed");
         }
 
-        public async Task<(bool success, string message)> RescheduleJobAsync(Job job)
+        public async Task<Result> RescheduleJobAsync(Job job)
         {
             if (_timers.Count > 0 && _timers.ContainsKey(job.Key))
             {
-                var removeResult = _timers.Remove(job.Key);
-                if (!removeResult) return (false, $"Remove job {job.Key} from scheduler was failed");
+                var removeResult = await UnscheduleJobAsync(job.Key); //_timers.Remove(job.Key);
+                if (!removeResult.Success) return Result.Fail($"Remove job {job.Key} from scheduler was failed");
             }
 
             var timer = CreateNewTimer(job);
             var addResult = _timers.TryAdd(job.Key, (timer, job));
 
             return addResult
-                ? (true, $"Job {job.Key} was successfully scheduled")
-                : (false, $"Job {job.Key} schedule failed");
+                ? Result.Ok()
+                : Result.Fail($"Job {job.Key} schedule failed");
         }
 
-        public async Task<(bool success, string message, Job job)> GetJob(string key)
+        public async Task<Result<Job>> GetJob(string key)
         {
-            if (_timers.Count == 0) return (false, "Scheduler is empty", null);
+            if (_timers.Count == 0) return Result.Fail<Job>("Scheduler is empty");
 
-            if (_timers.ContainsKey(key)) return (true, $"Job: {key} is active", null);
+            if (!_timers.ContainsKey(key)) return Result.Fail<Job>($"Job: {key} is not scheduled");
 
-            return (false, $"Job: {key} is not scheduled", null);
+            var job = _timers.FirstOrDefault(j => j.Key == key).Value.Item2;
+
+            return Result.Ok(job);
         }
 
-        public async Task<(bool success, string message, Job[] jobs)> GetJobs()
+        public async Task<Result<Job[]>> GetJobs()
         {
             return _timers.Count == 0
-                ? (false, "Scheduler is empty", null)
-                : (true, "That's ur scheduled jobs, boy", _timers.Values.Select(x => x.Item2).ToArray());
+                ? Result.Fail<Job[]>("Scheduler is empty") //new Result<Job[]>(null, false, "Scheduler is empty")
+                : Result.Ok(_timers.Values.Select(x => x.Item2).ToArray());
+            //new Result<Job[]>(_timers.Values.Select(x => x.Item2).ToArray(), true,
+            // "That's ur scheduled jobs, boy");
         }
 
         private Timer CreateNewTimer(Job job) => new Timer(

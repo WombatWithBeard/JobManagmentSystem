@@ -1,7 +1,8 @@
 ﻿using System;
 using System.Threading.Tasks;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
-using JobManagmentSystem.Scheduler.Common.Models;
+using JobManagmentSystem.Scheduler.Common.Results;
+using JobManagmentSystem.Scheduler.Models;
 using Microsoft.Extensions.Logging;
 
 namespace JobManagmentSystem.Application
@@ -20,7 +21,7 @@ namespace JobManagmentSystem.Application
             _logger = logger;
         }
 
-        public async Task<(bool success, string message)> ScheduleJobAsync(JobDto dto)
+        public async Task<Result> ScheduleJobAsync(JobDto dto)
         {
             try
             {
@@ -28,6 +29,7 @@ namespace JobManagmentSystem.Application
 
                 var job = new Job(task, Convert.ToDateTime(dto.TimeStart), dto.Interval, dto.IntervalType,
                     dto.TaskName, dto.TaskParameters, null);
+
 
                 return await _scheduler.ScheduleJobAsync(job);
             }
@@ -38,7 +40,7 @@ namespace JobManagmentSystem.Application
             }
         }
 
-        public async Task<(bool success, string message)> UncheduleJobAsync(string key)
+        public async Task<Result> UncheduleJobAsync(string key)
         {
             try
             {
@@ -51,7 +53,7 @@ namespace JobManagmentSystem.Application
             }
         }
 
-        public async Task<(bool success, string message)> RescheduleJobAsync(JobDto dto)
+        public async Task<Result> RescheduleJobAsync(JobDto dto)
         {
             try
             {
@@ -102,7 +104,7 @@ namespace JobManagmentSystem.Application
         //     }
         // }
 
-        public async Task<(bool success, string message, Job job)> GetJobByIdAsync(string key)
+        public async Task<Result<Job>> GetJobByIdAsync(string key)
         {
             try
             {
@@ -115,7 +117,7 @@ namespace JobManagmentSystem.Application
             }
         }
 
-        public async Task<(bool success, string message, Job[] jobs)> GetAllJobsAsync()
+        public async Task<Result<Job[]>> GetAllJobsAsync()
         {
             try
             {

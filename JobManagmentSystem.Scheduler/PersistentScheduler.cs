@@ -1,9 +1,15 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
+using System.Reflection.Metadata.Ecma335;
 using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
+using JobManagmentSystem.Scheduler.Common.Enums;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
-using JobManagmentSystem.Scheduler.Common.Models;
+using JobManagmentSystem.Scheduler.Common.Results;
+using JobManagmentSystem.Scheduler.Models;
 using Microsoft.Extensions.Logging;
 
 namespace JobManagmentSystem.Scheduler
@@ -23,155 +29,141 @@ namespace JobManagmentSystem.Scheduler
             _logger = logger;
         }
 
-        public async Task<(bool success, string message)> ScheduleJobAsync(Job job)
+        public async Task<Result> ScheduleJobAsync(Job job)
         {
-            var addJob = await _scheduler.ScheduleJobAsync(job);
-            if (!addJob.success) return (false, addJob.message);
+            var schedulingResult = await _scheduler.ScheduleJobAsync(job);
+            var savingResult = await _storage.SaveJobAsync(JsonSerializer.Serialize(job), job.Key);
 
-            var saveJob = await _storage.SaveJobAsync(JsonSerializer.Serialize(job), job.Key);
-            if (!saveJob.success)
-            {
-                await UnscheduleJobAsync(job.Key);
-                return (false, saveJob.message);
-            }
+            //TODO: check on both 
+            // return schedulingResult
+            //     .OnSuccess(() =>
+            //     {
+            //         _storage.SaveJobAsync(JsonSerializer.Serialize(job), job.Key).Result
+            //             .OnSuccess(() => _logger.LogInformation($"Job {job.Key} was successfully scheduled"))
+            //             .OnFailure(async () => await UnscheduleJobAsync(job.Key));
+            //     });
 
-            return (saveJob.success, saveJob.message);
+            return Result.Combine(schedulingResult, savingResult)
+                .OnFailure(async () => await UnscheduleJobAsync(job.Key))
+                .OnBoth(result => _logger.LogInformation($"Job {job.Key} was scheduled and saved successfully"));
+
+            // var saveJob = await _storage.SaveJobAsync(JsonSerializer.Serialize(job), job.Key);
+            // if (!saveJob.success)
+            // {
+            //     ;
+            //     return (false, saveJob.message);
+            // }
+            //
+            // return (saveJob.success, saveJob.message);
         }
 
-        public async Task<(bool success, string message)> UnscheduleJobAsync(string key)
+        public async Task<Result> UnscheduleJobAsync(string key)
         {
             var unscheduledJob = await TryUnscheduleJob(key);
-            var deleteJob = await TryDeleteJob(key);
 
-            if (!unscheduledJob.success) return (false, unscheduledJob.message);
-            if (!deleteJob.success) return (false, deleteJob.message);
-
-            return (unscheduledJob.success, unscheduledJob.message);
+            return unscheduledJob.OnSuccess(async () => await TryDeleteJob(key));
         }
 
-        private async Task<(bool success, string message)> TryUnscheduleJob(string key)
+        private async Task<Result> TryUnscheduleJob(string key)
         {
             var unscheduledJob = await _scheduler.UnscheduleJobAsync(key);
-            if (unscheduledJob.success)
+
+            return unscheduledJob.OnFailure(async () =>
             {
-                _logger.LogInformation(unscheduledJob.message);
-                return (true, unscheduledJob.message);
-            }
-
-            //TODO: what about - not exists? need to change this
-
-            var counter = 0;
-            while (counter <= 3 || unscheduledJob.success)
-            {
-                await Task.Delay(1500);
-                unscheduledJob = await _scheduler.UnscheduleJobAsync(key);
-                counter++;
-            }
-
-            _logger.LogInformation(unscheduledJob.message);
-
-            return (unscheduledJob.success, unscheduledJob.message);
+                var counter = 0;
+                while (counter <= 3 || unscheduledJob.Success)
+                {
+                    await Task.Delay(1500);
+                    unscheduledJob = await _scheduler.UnscheduleJobAsync(key);
+                    counter++;
+                }
+            });
         }
 
-        private async Task<(bool success, string message)> TryDeleteJob(string key)
+        private async Task<Result> TryDeleteJob(string key)
         {
             var deleteJob = await _storage.DeleteJobAsync(key);
-            if (deleteJob.success)
+
+            return deleteJob.OnFailure(async () =>
             {
-                _logger.LogInformation(deleteJob.message);
-                return (deleteJob.success, deleteJob.message);
-            }
-
-            //TODO: what about - not exists? need to change this
-
-            var counter = 0;
-            while (counter <= 3 || deleteJob.success)
-            {
-                await Task.Delay(1500);
-                deleteJob = await _storage.DeleteJobAsync(key);
-                counter++;
-            }
-
-            _logger.LogError(deleteJob.message);
-
-            return (deleteJob.success, deleteJob.message);
+                var counter = 0;
+                while (counter <= 3 || deleteJob.Success)
+                {
+                    await Task.Delay(1500);
+                    deleteJob = await _storage.DeleteJobAsync(key);
+                    counter++;
+                }
+            });
         }
 
-        public async Task<(bool success, string message)> RescheduleJobAsync(Job job)
+        public async Task<Result> RescheduleJobAsync(Job job)
         {
-            await UnscheduleJobAsync(job.Key);
+            var unscheduleJobResult = await UnscheduleJobAsync(job.Key);
 
-            return await ScheduleJobAsync(job);
+            return unscheduleJobResult.OnSuccess(async () => await ScheduleJobAsync(job));
         }
 
-        public async Task<(bool success, string message, Job job)> GetJob(string key)
+        public async Task<Result<Job>> GetJob(string key)
         {
             var scheduledJob = await _scheduler.GetJob(key);
-
             var savedJob = await _storage.GetJobAsync(key);
+            var aggregateJob = AggregatedJob(scheduledJob.Value, savedJob.Value);
 
-            if (scheduledJob.success && !savedJob.success)
-                return (false, $"Job {key} scheduled, by has no saved data", null);
-
-            if (!scheduledJob.success && savedJob.success)
-                return (false, $"Job {key} not scheduled, by has saved data",
-                    JsonSerializer.Deserialize<Job>(savedJob.job));
-
-            if (!savedJob.success && !scheduledJob.success) return (false, $"Job {key} was not found", null);
-
-            scheduledJob.job.Status = Job.JobStatusConsts.PersistAndScheduled;
-            return (savedJob.success, savedJob.message, scheduledJob.job);
+            return Result.Ok(aggregateJob);
         }
 
-        public async Task<(bool success, string message, Job[] jobs)> GetJobs()
+        private Job AggregatedJob(Job scheduledJobValue, Job savedJobValue)
         {
-            (bool schedulerOk, string message, Job[] runningJobs) = await _scheduler.GetJobs();
-            (bool storageOk, string msg, string[] persistedJobs) = await _storage.GetJobsAsync();
+            scheduledJobValue.Status = Status.Scheduled;
+            return scheduledJobValue;
+        }
 
-            if (!schedulerOk && !storageOk) return (false, "No jobs was found", null);
+        public async Task<Result<Job[]>> GetJobs()
+        {
+            var scheduledJobsResult = await _scheduler.GetJobs();
+            var savedJobsResult = await _storage.GetJobsAsync();
 
-            if (schedulerOk && !storageOk)
-                return (true, "Job id only from scheduler", runningJobs);
+            if (!scheduledJobsResult.Success && savedJobsResult.Success) return savedJobsResult;
+            if (scheduledJobsResult.Success && !savedJobsResult.Success) return scheduledJobsResult;
+            if (!scheduledJobsResult.Success && !savedJobsResult.Success) return Result.Fail<Job[]>("this is pizdec");
 
-            var persistedJobsS = MapToJobs(persistedJobs);
-            if (!schedulerOk) return (true, "Jobs from storage", persistedJobsS);
+            var aggregatedJobs = AggregatedJobs(scheduledJobsResult.Value, savedJobsResult.Value);
 
-            return (true, "Jobs from storage and scheduler", AggregatedJobs(runningJobs, persistedJobsS));
+            return Result.Ok(aggregatedJobs);
         }
 
         private Job[] AggregatedJobs(Job[] runningJobs, Job[] persistedJobsS)
         {
             //TODO: beautify this
-            var result = new List<Job>();
+            if (runningJobs == null && persistedJobsS != null) return persistedJobsS;
+            if (persistedJobsS == null) return runningJobs;
 
-            foreach (var runningJob in runningJobs)
+            var runningJobsDict = runningJobs.ToDictionary(job => job.Key);
+            var persistedJobsDict = persistedJobsS.ToDictionary(job => job.Key);
+
+            var unionDict = runningJobsDict.Concat(persistedJobsDict);
+
+            var keyValuePairs = unionDict.ToList();
+            foreach (var (key, value) in keyValuePairs)
             {
-                //Test
-                var a = persistedJobsS.Contains(runningJob);
-
-                if (persistedJobsS.Any(j => j.Key == runningJob.Key))
+                if (runningJobsDict.ContainsKey(key) && !persistedJobsDict.ContainsKey(key))
                 {
-                    runningJob.Status = Job.JobStatusConsts.PersistAndScheduled;
-                    result.Add(runningJob);
+                    value.Persisted = false;
+                    value.Status = Status.Scheduled;
+                }
+                else if (!runningJobsDict.ContainsKey(key) && persistedJobsDict.ContainsKey(key))
+                {
+                    value.Persisted = true;
+                    value.Status = Status.Unscheduled;
                 }
                 else
                 {
-                    runningJob.Status = Job.JobStatusConsts.ScheduledNotPersist;
-                    result.Add(runningJob);
+                    value.Persisted = true;
+                    value.Status = Status.Scheduled;
                 }
             }
 
-            foreach (var job in persistedJobsS)
-            {
-                if (runningJobs.Contains(job)) continue;
-                job.Status = Job.JobStatusConsts.PersistNotScheduled;
-                result.Add(job);
-            }
-
-            return result.ToArray();
+            return keyValuePairs.Select(s => s.Value).ToArray();
         }
-
-        private Job[] MapToJobs(string[] persistedJobs) =>
-            persistedJobs.Select(j => JsonSerializer.Deserialize<Job>(j)).ToArray();
     }
 }

@@ -10,7 +10,7 @@ namespace JobManagmentSystem.Application
     {
         private readonly ILogger _logger;
 
-        public TaskFactory(ILogger logger)
+        public TaskFactory(ILogger<TaskFactory> logger)
         {
             _logger = logger;
         }

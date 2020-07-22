@@ -1,14 +1,15 @@
 ﻿using System.Threading.Tasks;
-using JobManagmentSystem.Scheduler.Common.Models;
+using JobManagmentSystem.Scheduler.Common.Results;
+using JobManagmentSystem.Scheduler.Models;
 
 namespace JobManagmentSystem.Application
 {
     public interface IJobService
     {
-        Task<(bool success, string message)> ScheduleJobAsync(JobDto dto);
-        Task<(bool success, string message)> RescheduleJobAsync(JobDto dto);
-        Task<(bool success, string message)> UncheduleJobAsync(string key);
-        Task<(bool success, string message, Job job)> GetJobByIdAsync(string key);
-        Task<(bool success, string message, Job[] jobs)> GetAllJobsAsync();
+        Task<Result> ScheduleJobAsync(JobDto dto);
+        Task<Result> RescheduleJobAsync(JobDto dto);
+        Task<Result> UncheduleJobAsync(string key);
+        Task<Result<Job>> GetJobByIdAsync(string key);
+        Task<Result<Job[]>> GetAllJobsAsync();
     }
 }
