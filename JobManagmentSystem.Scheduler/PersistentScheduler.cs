@@ -1,5 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -26,176 +25,123 @@ namespace JobManagmentSystem.Scheduler
 
         public async Task<(bool success, string message)> ScheduleJobAsync(Job job)
         {
-            try
-            {
-                if (job.Status)
-                {
-                    var addJob = await _scheduler.ScheduleJobAsync(job);
-                    if (!addJob.success) throw new ScheduleJobException(job.Name, job.Key);
-                }
+            var addJob = await _scheduler.ScheduleJobAsync(job);
+            if (!addJob.success) return (false, addJob.message);
 
-                var saveJob = await _storage.SaveJobAsync(JsonSerializer.Serialize(job), job.Key);
-                if (!saveJob.success) throw new SaveJobException(job.Name, job.Key);
-
-                return (saveJob.success, saveJob.message);
-            }
-            catch (Exception e)
+            var saveJob = await _storage.SaveJobAsync(JsonSerializer.Serialize(job), job.Key);
+            if (!saveJob.success)
             {
-                _logger.LogError(e.Message);
                 await UnscheduleJobAsync(job.Key);
-                throw;
+                return (false, saveJob.message);
             }
+
+            return (saveJob.success, saveJob.message);
         }
 
         public async Task<(bool success, string message)> UnscheduleJobAsync(string key)
         {
-            try
-            {
-                var unscheduledJob = await TryUnscheduleJob(key);
-                var deleteJob = await TryDeleteJob(key);
+            var unscheduledJob = await TryUnscheduleJob(key);
+            var deleteJob = await TryDeleteJob(key);
 
-                if (!unscheduledJob.success) throw new UnscheduleJobException(key);
-                if (!deleteJob.success) throw new DeleteJobException(key);
+            if (!unscheduledJob.success) return (false, unscheduledJob.message);
+            if (!deleteJob.success) return (false, deleteJob.message);
 
-                return (unscheduledJob.success, unscheduledJob.message);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e.Message);
-                throw;
-            }
+            return (unscheduledJob.success, unscheduledJob.message);
         }
 
         private async Task<(bool success, string message)> TryUnscheduleJob(string key)
         {
-            try
+            var unscheduledJob = await _scheduler.UnscheduleJobAsync(key);
+            if (unscheduledJob.success)
             {
-                var unscheduledJob = await _scheduler.UnscheduleJobAsync(key);
-                if (unscheduledJob.success)
-                {
-                    _logger.LogInformation(unscheduledJob.message);
-                    return (true, unscheduledJob.message);
-                }
-
-                //TODO: what about - not exists? need to change this
-
-                var counter = 0;
-                while (counter <= 3 || unscheduledJob.success)
-                {
-                    await Task.Delay(1500);
-                    unscheduledJob = await _scheduler.UnscheduleJobAsync(key);
-                    counter++;
-                }
-
                 _logger.LogInformation(unscheduledJob.message);
+                return (true, unscheduledJob.message);
+            }
 
-                return (unscheduledJob.success, unscheduledJob.message);
-            }
-            catch (Exception e)
+            //TODO: what about - not exists? need to change this
+
+            var counter = 0;
+            while (counter <= 3 || unscheduledJob.success)
             {
-                _logger.LogError(e.Message);
-                throw;
+                await Task.Delay(1500);
+                unscheduledJob = await _scheduler.UnscheduleJobAsync(key);
+                counter++;
             }
+
+            _logger.LogInformation(unscheduledJob.message);
+
+            return (unscheduledJob.success, unscheduledJob.message);
         }
 
         private async Task<(bool success, string message)> TryDeleteJob(string key)
         {
-            try
+            var deleteJob = await _storage.DeleteJobAsync(key);
+            if (deleteJob.success)
             {
-                var deleteJob = await _storage.DeleteJobAsync(key);
-                if (deleteJob.success)
-                {
-                    _logger.LogInformation(deleteJob.message);
-                    return (deleteJob.success, deleteJob.message);
-                }
-
-                //TODO: what about - not exists? need to change this
-
-                var counter = 0;
-                while (counter <= 3 || deleteJob.success)
-                {
-                    await Task.Delay(1500);
-                    deleteJob = await _storage.DeleteJobAsync(key);
-                    counter++;
-                }
-
-                _logger.LogError(deleteJob.message);
-
+                _logger.LogInformation(deleteJob.message);
                 return (deleteJob.success, deleteJob.message);
             }
-            catch (Exception e)
+
+            //TODO: what about - not exists? need to change this
+
+            var counter = 0;
+            while (counter <= 3 || deleteJob.success)
             {
-                _logger.LogError(e.Message);
-                throw;
+                await Task.Delay(1500);
+                deleteJob = await _storage.DeleteJobAsync(key);
+                counter++;
             }
+
+            _logger.LogError(deleteJob.message);
+
+            return (deleteJob.success, deleteJob.message);
         }
 
         public async Task<(bool success, string message)> RescheduleJobAsync(Job job)
         {
-            try
-            {
-                await UnscheduleJobAsync(job.Key);
+            await UnscheduleJobAsync(job.Key);
 
-                return await ScheduleJobAsync(job);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e.Message);
-                return (false, e.Message);
-            }
+            return await ScheduleJobAsync(job);
         }
 
         public async Task<(bool success, string message, Job job)> GetJob(string key)
         {
-            try
-            {
-                var scheduledJob = await _scheduler.GetJob(key);
+            var scheduledJob = await _scheduler.GetJob(key);
 
-                var savedJob = await _storage.GetJobAsync(key);
+            var savedJob = await _storage.GetJobAsync(key);
 
-                if (scheduledJob.success && !savedJob.success)
-                    return (false, $"Job {key} scheduled, by has no saved data", null);
+            if (scheduledJob.success && !savedJob.success)
+                return (false, $"Job {key} scheduled, by has no saved data", null);
 
-                if (!scheduledJob.success && savedJob.success)
-                    return (false, $"Job {key} not scheduled, by has saved data", Job.Empty);
+            if (!scheduledJob.success && savedJob.success)
+                return (false, $"Job {key} not scheduled, by has saved data",
+                    JsonSerializer.Deserialize<Job>(savedJob.job));
 
-                if (!savedJob.success && !scheduledJob.success) throw new NotFoundException(key);
+            if (!savedJob.success && !scheduledJob.success) return (false, $"Job {key} was not found", null);
 
-                return (savedJob.success, savedJob.message, Job.Empty);
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e.Message);
-                throw;
-            }
+            scheduledJob.job.Status = Job.JobStatusConsts.PersistAndScheduled;
+            return (savedJob.success, savedJob.message, scheduledJob.job);
         }
 
         public async Task<(bool success, string message, Job[] jobs)> GetJobs()
         {
-            try
-            {
-                (bool schedulerOk, string message, Job[] runningJobs) = await _scheduler.GetJobs();
-                (bool storageOk, string msg, string[] persistedJobs) = await _storage.GetJobsAsync();
+            (bool schedulerOk, string message, Job[] runningJobs) = await _scheduler.GetJobs();
+            (bool storageOk, string msg, string[] persistedJobs) = await _storage.GetJobsAsync();
 
-                if (!schedulerOk && !storageOk) return (false, "No jobs was found", null);
+            if (!schedulerOk && !storageOk) return (false, "No jobs was found", null);
 
-                if (schedulerOk && !storageOk)
-                    return (true, "Job id only from scheduler", runningJobs);
+            if (schedulerOk && !storageOk)
+                return (true, "Job id only from scheduler", runningJobs);
 
-                var persistedJobsS = MapToJobs(persistedJobs);
-                if (!schedulerOk) return (true, "Jobs from storage", persistedJobsS);
+            var persistedJobsS = MapToJobs(persistedJobs);
+            if (!schedulerOk) return (true, "Jobs from storage", persistedJobsS);
 
-                return (true, "Jobs from storage and scheduler", AggregatedJobs(runningJobs, persistedJobsS));
-            }
-            catch (Exception e)
-            {
-                _logger.LogError(e.Message);
-                throw;
-            }
+            return (true, "Jobs from storage and scheduler", AggregatedJobs(runningJobs, persistedJobsS));
         }
 
         private Job[] AggregatedJobs(Job[] runningJobs, Job[] persistedJobsS)
         {
+            //TODO: beautify this
             var result = new List<Job>();
 
             foreach (var runningJob in runningJobs)

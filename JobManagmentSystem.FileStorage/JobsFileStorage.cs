@@ -19,18 +19,29 @@ namespace JobManagmentSystem.FileStorage
             _logger = logger;
             _fileName = fileName;
             _path = Directory.GetCurrentDirectory() + _fileName;
+            DirectoryCheck();
+        }
+
+        private void DirectoryCheck()
+        {
+            try
+            {
+                if (!File.Exists(_path)) File.Create(_path);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e.Message);
+                throw;
+            }
         }
 
         public async Task<(bool success, string message)> SaveJobAsync(string jsonJob, string key)
         {
             try
             {
-                if (File.Exists(_path))
-                {
-                    var jobs = await File.ReadAllLinesAsync(_path);
+                var jobs = await File.ReadAllLinesAsync(_path);
 
-                    if (jobs.Any(j => j.Contains(key))) return (false, $"Key {key} already exists");
-                }
+                if (jobs.Any(j => j.Contains(key))) return (false, $"Key {key} already exists");
 
                 await File.AppendAllLinesAsync(Directory.GetCurrentDirectory() + _fileName,
                     new[] {jsonJob});
@@ -48,8 +59,6 @@ namespace JobManagmentSystem.FileStorage
         {
             try
             {
-                if (!File.Exists(_path)) return (false, "File not exists");
-
                 var jobs = await File.ReadAllLinesAsync(_path);
 
                 if (!jobs.Any(j => j.Contains(key))) return (false, $"Key {key} not exists");
@@ -71,8 +80,6 @@ namespace JobManagmentSystem.FileStorage
         {
             try
             {
-                if (!File.Exists(_path)) return (true, "File not exists");
-
                 await File.WriteAllLinesAsync(_path, new List<string>());
 
                 return (true, "All jobs was deleted");
@@ -88,8 +95,6 @@ namespace JobManagmentSystem.FileStorage
         {
             try
             {
-                if (!File.Exists(_path)) return (false, "File not exists", null);
-
                 var result = await File.ReadAllLinesAsync(_path);
 
                 return (true, "File read successfully", result);
@@ -105,17 +110,15 @@ namespace JobManagmentSystem.FileStorage
         {
             try
             {
-                if (!File.Exists(_path)) return (false, "File not exists", null);
-
                 var jobs = await File.ReadAllLinesAsync(_path);
 
                 if (jobs == null) return (false, "Jobs list was empty", null);
 
                 var job = jobs.FirstOrDefault(j => j.Contains(key));
 
-                if (job == null) return (false, "Jobs list was empty", null);
-
-                return (true, "There is ur job, boy", job);
+                return job == null
+                    ? (false, "Jobs list was empty", null)
+                    : (true, "There is ur job, boy", job);
             }
             catch (Exception e)
             {
