@@ -8,6 +8,7 @@ using JobManagmentSystem.Scheduler.Common.Interfaces;
 using JobManagmentSystem.Scheduler.Common.Results;
 using JobManagmentSystem.Scheduler.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace JobManagmentSystem.FileStorage
 {
@@ -16,6 +17,7 @@ namespace JobManagmentSystem.FileStorage
         private readonly ILogger<JobsFileStorage> _logger;
         private readonly string _fileName;
         private readonly string _path;
+        private readonly string _fileStorage;
 
         public JobsFileStorage(ILogger<JobsFileStorage> logger, string fileName = @"\jobs.ndjson")
         {
@@ -78,7 +80,7 @@ namespace JobManagmentSystem.FileStorage
 
                 await File.WriteAllLinesAsync(_path, newJobs);
 
-                return Result.Ok($"Key {key} successfully deleted");
+                return Result.Ok();
             }
             catch (Exception e)
             {
@@ -116,9 +118,9 @@ namespace JobManagmentSystem.FileStorage
 
                 var job = JsonSerializer.Deserialize<Job>(jobs.FirstOrDefault(j => j.Contains(key)));
 
-                return job == null
-                    ? Result.Fail<Job>("Jobs list was empty")
-                    : Result.Ok(job);
+                if (job == null) Result.Fail<Job>("Jobs list was empty");
+
+                return Result.Ok(job);
             }
             catch (Exception e)
             {

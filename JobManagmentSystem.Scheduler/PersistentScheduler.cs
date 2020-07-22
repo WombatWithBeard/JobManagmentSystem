@@ -97,6 +97,7 @@ namespace JobManagmentSystem.Scheduler
 
         private Job AggregatedJob(Job scheduledJobValue, Job savedJobValue)
         {
+            //TODO: and this shit
             if (scheduledJobValue.Key != savedJobValue.Key) return scheduledJobValue;
 
             scheduledJobValue.Scheduled = true;

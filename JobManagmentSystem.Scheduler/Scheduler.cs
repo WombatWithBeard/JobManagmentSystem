@@ -54,7 +54,7 @@ namespace JobManagmentSystem.Scheduler
         {
             if (_timers.Count > 0 && _timers.ContainsKey(job.Key))
             {
-                var removeResult = await UnscheduleJobAsync(job.Key); //_timers.Remove(job.Key);
+                var removeResult = await UnscheduleJobAsync(job.Key);
                 if (!removeResult.Success) return Result.Fail($"Remove job {job.Key} from scheduler was failed");
             }
 
