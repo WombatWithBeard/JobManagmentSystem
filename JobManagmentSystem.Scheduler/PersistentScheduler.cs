@@ -1,12 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Reflection;
-using System.Reflection.Metadata.Ecma335;
-using System.Text.Json;
-using System.Text.Json.Serialization;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using JobManagmentSystem.Scheduler.Common.Enums;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using JobManagmentSystem.Scheduler.Common.Results;
 using JobManagmentSystem.Scheduler.Models;
@@ -32,29 +25,13 @@ namespace JobManagmentSystem.Scheduler
         public async Task<Result> ScheduleJobAsync(Job job)
         {
             var schedulingResult = await _scheduler.ScheduleJobAsync(job);
-            var savingResult = await _storage.SaveJobAsync(JsonSerializer.Serialize(job), job.Key);
+            var savingResult = await _storage.SaveJobAsync(job);
 
             //TODO: check on both 
-            // return schedulingResult
-            //     .OnSuccess(() =>
-            //     {
-            //         _storage.SaveJobAsync(JsonSerializer.Serialize(job), job.Key).Result
-            //             .OnSuccess(() => _logger.LogInformation($"Job {job.Key} was successfully scheduled"))
-            //             .OnFailure(async () => await UnscheduleJobAsync(job.Key));
-            //     });
 
             return Result.Combine(schedulingResult, savingResult)
                 .OnFailure(async () => await UnscheduleJobAsync(job.Key))
                 .OnBoth(result => _logger.LogInformation($"Job {job.Key} was scheduled and saved successfully"));
-
-            // var saveJob = await _storage.SaveJobAsync(JsonSerializer.Serialize(job), job.Key);
-            // if (!saveJob.success)
-            // {
-            //     ;
-            //     return (false, saveJob.message);
-            // }
-            //
-            // return (saveJob.success, saveJob.message);
         }
 
         public async Task<Result> UnscheduleJobAsync(string key)
@@ -105,16 +82,23 @@ namespace JobManagmentSystem.Scheduler
 
         public async Task<Result<Job>> GetJob(string key)
         {
-            var scheduledJob = await _scheduler.GetJob(key);
-            var savedJob = await _storage.GetJobAsync(key);
-            var aggregateJob = AggregatedJob(scheduledJob.Value, savedJob.Value);
+            var scheduledJobResult = await _scheduler.GetJob(key);
+            var savedJobResult = await _storage.GetJobAsync(key);
 
-            return Result.Ok(aggregateJob);
+            if (!scheduledJobResult.Success && savedJobResult.Success) return savedJobResult;
+            if (scheduledJobResult.Success && !savedJobResult.Success) return scheduledJobResult;
+
+            return Result.Combine(scheduledJobResult, savedJobResult)
+                .OnSuccess(() => AggregatedJob(scheduledJobResult.Value, savedJobResult.Value));
         }
 
         private Job AggregatedJob(Job scheduledJobValue, Job savedJobValue)
         {
+            if (scheduledJobValue.Key != savedJobValue.Key) return scheduledJobValue;
+
             scheduledJobValue.Status = Status.Scheduled;
+            scheduledJobValue.Persisted = true;
+
             return scheduledJobValue;
         }
 
@@ -125,11 +109,9 @@ namespace JobManagmentSystem.Scheduler
 
             if (!scheduledJobsResult.Success && savedJobsResult.Success) return savedJobsResult;
             if (scheduledJobsResult.Success && !savedJobsResult.Success) return scheduledJobsResult;
-            if (!scheduledJobsResult.Success && !savedJobsResult.Success) return Result.Fail<Job[]>("this is pizdec");
 
-            var aggregatedJobs = AggregatedJobs(scheduledJobsResult.Value, savedJobsResult.Value);
-
-            return Result.Ok(aggregatedJobs);
+            return Result.Combine(scheduledJobsResult, savedJobsResult).OnSuccess(() =>
+                AggregatedJobs(scheduledJobsResult.Value, savedJobsResult.Value));
         }
 
         private Job[] AggregatedJobs(Job[] runningJobs, Job[] persistedJobsS)

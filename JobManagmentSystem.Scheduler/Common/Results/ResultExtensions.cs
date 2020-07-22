@@ -1,5 +1,4 @@
 ﻿using System;
-using JobManagmentSystem.Scheduler.Models;
 
 namespace JobManagmentSystem.Scheduler.Common.Results
 {

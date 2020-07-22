@@ -37,16 +37,16 @@ namespace JobManagmentSystem.FileStorage
             }
         }
 
-        public async Task<Result> SaveJobAsync(string jsonJob, string key)
+        public async Task<Result> SaveJobAsync(Job job)
         {
             try
             {
                 var jobs = await File.ReadAllLinesAsync(_path);
 
-                if (jobs.Any(j => j.Contains(key))) return Result.Fail($"Key {key} already exists");
+                if (jobs.Any(j => j.Contains(job.Key))) return Result.Fail($"Key {job.Key} already exists");
 
                 await File.AppendAllLinesAsync(Directory.GetCurrentDirectory() + _fileName,
-                    new[] {jsonJob});
+                    new[] {JsonSerializer.Serialize(job)});
 
                 return Result.Ok();
             }
@@ -86,7 +86,7 @@ namespace JobManagmentSystem.FileStorage
             {
                 var stringsJobs = await File.ReadAllLinesAsync(_path);
 
-                if (stringsJobs == null) 
+                if (stringsJobs == null)
                     return Result.Fail<Job[]>("Storage is empty");
 
                 var jobs = stringsJobs.Select(j => JsonSerializer.Deserialize<Job>(j)).ToArray();
