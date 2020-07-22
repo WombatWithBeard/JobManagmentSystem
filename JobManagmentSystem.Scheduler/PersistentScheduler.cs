@@ -37,8 +37,9 @@ namespace JobManagmentSystem.Scheduler
         public async Task<Result> UnscheduleJobAsync(string key)
         {
             var unscheduledJob = await TryUnscheduleJob(key);
+            var deletedJob = await TryDeleteJob(key);
 
-            return unscheduledJob.OnSuccess(async () => await TryDeleteJob(key));
+            return Result.Combine(unscheduledJob, deletedJob);
         }
 
         private async Task<Result> TryUnscheduleJob(string key)
@@ -76,8 +77,9 @@ namespace JobManagmentSystem.Scheduler
         public async Task<Result> RescheduleJobAsync(Job job)
         {
             var unscheduleJobResult = await UnscheduleJobAsync(job.Key);
+            var schedulerJobResult = await ScheduleJobAsync(job);
 
-            return unscheduleJobResult.OnSuccess(async () => await ScheduleJobAsync(job));
+            return Result.Combine(unscheduleJobResult, schedulerJobResult);
         }
 
         public async Task<Result<Job>> GetJob(string key)
@@ -114,37 +116,42 @@ namespace JobManagmentSystem.Scheduler
                 AggregatedJobs(scheduledJobsResult.Value, savedJobsResult.Value));
         }
 
+        //TODO: beautify this
         private Job[] AggregatedJobs(Job[] scheduledJobs, Job[] persistedJobs)
         {
-            //TODO: beautify this
-            if (scheduledJobs == null && persistedJobs != null) return persistedJobs; //TODO: persisted = true / scheduled = false
-            if (persistedJobs == null) return scheduledJobs; //TODO: persisted = false / scheduled = true
+            //TODO: persisted = true / scheduled = false
+            if (scheduledJobs == null && persistedJobs != null) return persistedJobs;
+            //TODO: persisted = false / scheduled = true
+            if (persistedJobs == null) return scheduledJobs;
 
             var runningJobsDict = scheduledJobs.ToDictionary(job => job.Key);
             var persistedJobsDict = persistedJobs.ToDictionary(job => job.Key);
 
-            var unionJobs = scheduledJobs.Union(persistedJobs).ToArray(); //TODO: Fuck
+            var unionJobs = runningJobsDict
+                .Union(persistedJobsDict)
+                .GroupBy(g => g.Key)
+                .ToDictionary(k => k.Key, g => g.First().Value);
 
-            foreach (var job in unionJobs)
+            foreach (var (key, value) in unionJobs)
             {
-                if (runningJobsDict.ContainsKey(job.Key) && !persistedJobsDict.ContainsKey(job.Key))
+                if (runningJobsDict.ContainsKey(key) && !persistedJobsDict.ContainsKey(key))
                 {
-                    job.Persisted = false;
-                    job.Scheduled = true;
+                    value.Persisted = false;
+                    value.Scheduled = true;
                 }
-                else if (!runningJobsDict.ContainsKey(job.Key) && persistedJobsDict.ContainsKey(job.Key))
+                else if (!runningJobsDict.ContainsKey(key) && persistedJobsDict.ContainsKey(key))
                 {
-                    job.Persisted = true;
-                    job.Scheduled = false;
+                    value.Persisted = true;
+                    value.Scheduled = false;
                 }
                 else
                 {
-                    job.Persisted = true;
-                    job.Scheduled = true;
+                    value.Persisted = true;
+                    value.Scheduled = true;
                 }
             }
 
-            return unionJobs;
+            return unionJobs.Values.ToArray();
         }
     }
 }

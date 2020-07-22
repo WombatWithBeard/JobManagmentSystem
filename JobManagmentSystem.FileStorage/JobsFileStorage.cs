@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
@@ -47,7 +48,9 @@ namespace JobManagmentSystem.FileStorage
             {
                 var jobs = await File.ReadAllLinesAsync(_path);
 
-                if (jobs.Any(j => j.Contains(job.Key))) return Result.Fail($"Key {job.Key} already exists");
+                if (!IsNullOrEmpty(jobs))
+                    if (jobs.Any(j => j.Contains(job.Key)))
+                        return Result.Fail($"Key {job.Key} already exists");
 
                 await File.AppendAllLinesAsync(Directory.GetCurrentDirectory() + _fileName,
                     new[] {JsonSerializer.Serialize(job)});
@@ -67,7 +70,7 @@ namespace JobManagmentSystem.FileStorage
             {
                 var jobs = await File.ReadAllLinesAsync(_path);
 
-                if (jobs == null) return Result.Ok("Storage is empty");
+                if (IsNullOrEmpty(jobs)) return Result.Ok("Storage is empty");
 
                 if (!jobs.Any(j => j.Contains(key))) return Result.Fail($"Key {key} not exists");
 
@@ -88,11 +91,11 @@ namespace JobManagmentSystem.FileStorage
         {
             try
             {
-                var stringsJobs = await File.ReadAllLinesAsync(_path);
+                var strJobs = await File.ReadAllLinesAsync(_path);
 
-                if (stringsJobs == null) return Result.Fail<Job[]>("Storage is empty");
+                if (IsNullOrEmpty(strJobs)) return Result.Fail<Job[]>("Storage is empty");
 
-                var jobs = stringsJobs.Select(j => JsonSerializer.Deserialize<Job>(j)).ToArray();
+                var jobs = strJobs.Select(j => JsonSerializer.Deserialize<Job>(j)).ToArray();
 
                 return Result.Ok(jobs);
             }
@@ -109,7 +112,7 @@ namespace JobManagmentSystem.FileStorage
             {
                 var jobs = await File.ReadAllLinesAsync(_path);
 
-                if (jobs == null) return Result.Fail<Job>("Jobs list was empty");
+                if (IsNullOrEmpty(jobs)) return Result.Fail<Job>("Jobs list was empty");
 
                 var job = JsonSerializer.Deserialize<Job>(jobs.FirstOrDefault(j => j.Contains(key)));
 
@@ -122,6 +125,11 @@ namespace JobManagmentSystem.FileStorage
                 _logger.LogError(e.Message);
                 return Result.Fail<Job>(e.Message);
             }
+        }
+
+        private bool IsNullOrEmpty<T>(IEnumerable<T> source)
+        {
+            return source == null || !source.Any();
         }
     }
 }
