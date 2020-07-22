@@ -22,7 +22,7 @@ namespace JobManagmentSystem.WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddSingleton<Scheduler.Scheduler>();
-            services.AddSingleton<IPersistStorage, JobsFileStorage>();
+            services.AddScoped<IPersistStorage, JobsFileStorage>();
             services.AddScoped<IScheduler, PersistentScheduler>();
             services.AddScoped<TaskFactory>();
             services.AddScoped<IJobService, JobService>();

@@ -15,7 +15,7 @@ namespace JobManagmentSystem.Scheduler.Models
         public object TaskParameters { get; set; }
         public string Key { get; set; }
         public Schedule Schedule { get; set; }
-        public Status Status { get; set; }
+        public bool Scheduled { get; set; }
         public bool Persisted { get; set; }
 
         public Job(IJobTask task, DateTime timeStart, double interval, int intervalType, string name,
@@ -27,11 +27,5 @@ namespace JobManagmentSystem.Scheduler.Models
             Schedule = new Schedule(timeStart, intervalType, interval);
             Key = key ?? Guid.NewGuid().ToString();
         }
-    }
-
-    public enum Status
-    {
-        Scheduled,
-        Unscheduled
     }
 }

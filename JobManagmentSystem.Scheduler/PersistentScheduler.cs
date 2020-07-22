@@ -96,7 +96,7 @@ namespace JobManagmentSystem.Scheduler
         {
             if (scheduledJobValue.Key != savedJobValue.Key) return scheduledJobValue;
 
-            scheduledJobValue.Status = Status.Scheduled;
+            scheduledJobValue.Scheduled = true;
             scheduledJobValue.Persisted = true;
 
             return scheduledJobValue;
@@ -131,17 +131,17 @@ namespace JobManagmentSystem.Scheduler
                 if (runningJobsDict.ContainsKey(key) && !persistedJobsDict.ContainsKey(key))
                 {
                     value.Persisted = false;
-                    value.Status = Status.Scheduled;
+                    value.Scheduled = true;
                 }
                 else if (!runningJobsDict.ContainsKey(key) && persistedJobsDict.ContainsKey(key))
                 {
                     value.Persisted = true;
-                    value.Status = Status.Unscheduled;
+                    value.Scheduled = false;
                 }
                 else
                 {
                     value.Persisted = true;
-                    value.Status = Status.Scheduled;
+                    value.Scheduled = true;
                 }
             }
 

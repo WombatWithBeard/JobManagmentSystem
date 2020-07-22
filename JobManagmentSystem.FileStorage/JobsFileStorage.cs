@@ -28,7 +28,11 @@ namespace JobManagmentSystem.FileStorage
         {
             try
             {
-                if (!File.Exists(_path)) File.Create(_path);
+                if (File.Exists(_path)) return;
+                using (File.Create(_path))
+                {
+                    _logger.LogInformation($"Jobs storage was created in path: {_path}");
+                }
             }
             catch (Exception e)
             {
