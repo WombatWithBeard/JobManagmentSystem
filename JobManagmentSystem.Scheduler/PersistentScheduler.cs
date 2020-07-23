@@ -1,5 +1,4 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using JobManagmentSystem.Scheduler.Common.Results;

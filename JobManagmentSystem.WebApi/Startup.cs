@@ -24,7 +24,7 @@ namespace JobManagmentSystem.WebApi
             services.Configure<JobsFileStorage>(Configuration.GetSection("StoragePath").GetSection("FileStorage"));
             
             services.AddSingleton<Scheduler.Scheduler>();
-            services.AddScoped<IPersistStorage, JobsFileStorage>();
+            services.AddSingleton<IPersistStorage, JobsFileStorage>();
             services.AddScoped<IScheduler, PersistentScheduler>();
             services.AddScoped<TaskFactory>();
             services.AddScoped<IJobService, JobService>();

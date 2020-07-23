@@ -1,4 +1,5 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.IO;
 using System.Threading.Tasks;
 using JobManagmentSystem.FileStorage;
 using JobManagmentSystem.Scheduler;
@@ -8,19 +9,20 @@ using Xunit;
 
 namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
 {
-    public class DeleteJobUnitTests
+    public class UnscheduleJobPsUnitTests : IDisposable
     {
         private readonly JobManagmentSystem.Scheduler.Scheduler _scheduler;
         private readonly TestJobMaker _jobMaker;
         private readonly IScheduler _persistentScheduler;
         private readonly IPersistStorage _storage;
+        private string Path = $@"\{nameof(UnscheduleJobPsUnitTests)}.ndjson";
 
-        public DeleteJobUnitTests()
+        public UnscheduleJobPsUnitTests()
         {
             _jobMaker = new TestJobMaker();
             _scheduler =
                 new JobManagmentSystem.Scheduler.Scheduler(NullLogger<JobManagmentSystem.Scheduler.Scheduler>.Instance);
-            _storage = new JobsFileStorage(NullLogger<JobsFileStorage>.Instance);
+            _storage = new JobsFileStorage(NullLogger<JobsFileStorage>.Instance, Path);
             _persistentScheduler = new PersistentScheduler(_scheduler, _storage,
                 NullLogger<PersistentScheduler>.Instance);
         }
@@ -33,22 +35,11 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
 
             //Act
             await _persistentScheduler.ScheduleJobAsync(job);
-            var (success, message) = await _persistentScheduler.UnscheduleJobAsync(job.Key);
+            var result = await _persistentScheduler.UnscheduleJobAsync(job.Key);
 
             //Assert
-            Assert.True(success);
-            Assert.Equal($"Job {job.Key} was successfully unscheduled", message);
-        }
-
-        [Fact]
-        public async Task DeleteJob_KeyNotExistsInStorageResult()
-        {
-            //Act
-            var (success, message) = await _persistentScheduler.UnscheduleJobAsync("test");
-
-            //Assert
-            Assert.False(success);
-            Assert.Equal("Key test not exists", message);
+            Assert.True(result.Success);
+            // Assert.Equal($"Job {job.Key} was successfully unscheduled", message);
         }
 
         [Fact]
@@ -58,12 +49,20 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
             var job = _jobMaker.CreateTestJob();
 
             //Act
-            await _storage.SaveJobAsync(JsonSerializer.Serialize(job), job.Key);
-            var (success, message) = await _persistentScheduler.UnscheduleJobAsync(job.Key);
+            await _storage.SaveJobAsync(job);
+            var result = await _persistentScheduler.UnscheduleJobAsync(job.Key);
 
             //Assert
-            Assert.True(success);
-            Assert.Equal("Scheduler is empty", message);
+            Assert.True(result.Success);
+            // Assert.Equal("Scheduler is empty", result.Error);
+        }
+
+        public void Dispose()
+        {
+            if (File.Exists(Directory.GetCurrentDirectory() + Path))
+            {
+                File.Delete(Directory.GetCurrentDirectory() + Path);
+            }
         }
     }
 }
