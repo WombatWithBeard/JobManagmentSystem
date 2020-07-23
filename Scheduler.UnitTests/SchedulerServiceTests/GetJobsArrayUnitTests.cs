@@ -26,24 +26,23 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
             await _scheduler.ScheduleJobAsync(_jobMaker.CreateTestJob());
             await _scheduler.ScheduleJobAsync(_jobMaker.CreateTestJob());
             await _scheduler.ScheduleJobAsync(_jobMaker.CreateTestJob());
-            var (success, message, jobs) = await _scheduler.GetJobs();
+            var result = await _scheduler.GetJobs();
 
             //Assert
-            Assert.True(success);
-            Assert.Equal(5, jobs.Length);
-            Assert.Equal("That's ur jobs, boy", message);
-        }        
-        
+            Assert.True(result.Success);
+            Assert.Equal(5, result.Value.Length);
+            // Assert.Equal("That's ur jobs, boy", message);
+        }
+
         [Fact]
         public async Task GetJobsArray_EmptyResult()
         {
             //Act
-            var (success, message, jobs) = await _scheduler.GetJobs();
+            var result = await _scheduler.GetJobs();
 
             //Assert
-            Assert.False(success);
-            Assert.Null(jobs);
-            Assert.Equal("Scheduler is empty", message);
+            Assert.True(result.Failure);
+            Assert.Equal("Scheduler is empty", result.Error);
         }
     }
 }

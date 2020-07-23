@@ -32,11 +32,10 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
             var job = _jobMaker.CreateTestJob();
 
             //Act
-            var (success, message) = await _persistentScheduler.ScheduleJobAsync(job);
+            var result = await _persistentScheduler.ScheduleJobAsync(job);
 
             //Assert
-            Assert.True(success);
-            Assert.Equal($"Job {job.Key} was successfully scheduled", message);
+            Assert.True(result.Success);
         }
 
         [Fact]
@@ -47,11 +46,11 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
 
             //Act
             await _scheduler.ScheduleJobAsync(job);
-            var (success, message) = await _persistentScheduler.ScheduleJobAsync(job);
+            var result = await _persistentScheduler.ScheduleJobAsync(job);
 
             //Assert
-            Assert.False(success);
-            Assert.Equal($"Job {job.Key} already exists", message);
+            Assert.True(result.Failure);
+            Assert.Equal($"Job {job.Key} already scheduled", result.Error);
         }
 
         [Fact]
@@ -61,12 +60,12 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
             var job = _jobMaker.CreateTestJob();
 
             //Act
-            await _storage.SaveJobAsync(JsonSerializer.Serialize(job), job.Key);
-            var (success, message) = await _persistentScheduler.ScheduleJobAsync(job);
+            await _storage.SaveJobAsync(job);
+            var result = await _persistentScheduler.ScheduleJobAsync(job);
 
             //Assert
-            Assert.False(success);
-            Assert.Equal($"Key {job.Key} already exists", message);
+            Assert.True(result.Failure);
+            Assert.Equal($"Key {job.Key} already exists", result.Error);
         }
     }
 }

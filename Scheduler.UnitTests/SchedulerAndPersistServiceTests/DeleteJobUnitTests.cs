@@ -1,4 +1,6 @@
-﻿using System.Text.Json;
+﻿using System;
+using System.Reflection.Metadata;
+using System.Text.Json;
 using System.Threading.Tasks;
 using JobManagmentSystem.FileStorage;
 using JobManagmentSystem.Scheduler;
@@ -32,23 +34,23 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
             var job = _jobMaker.CreateTestJob();
 
             //Act
-            await _persistentScheduler.ScheduleJobAsync(job);
-            var (success, message) = await _persistentScheduler.UnscheduleJobAsync(job.Key);
+            var a= _persistentScheduler.ScheduleJobAsync(job).Result;
+            var result = await _persistentScheduler.UnscheduleJobAsync(job.Key);
 
             //Assert
-            Assert.True(success);
-            Assert.Equal($"Job {job.Key} was successfully unscheduled", message);
+            Assert.True(result.Success);
+            // Assert.Equal($"Job {job.Key} was successfully unscheduled", message);
         }
 
         [Fact]
         public async Task DeleteJob_KeyNotExistsInStorageResult()
         {
             //Act
-            var (success, message) = await _persistentScheduler.UnscheduleJobAsync("test");
+            var result = await _persistentScheduler.UnscheduleJobAsync("test");
 
             //Assert
-            Assert.False(success);
-            Assert.Equal("Key test not exists", message);
+            Assert.True(result.Failure);
+            Assert.Equal("Key test not exists", result.Error);
         }
 
         [Fact]
@@ -58,12 +60,12 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
             var job = _jobMaker.CreateTestJob();
 
             //Act
-            await _storage.SaveJobAsync(JsonSerializer.Serialize(job), job.Key);
-            var (success, message) = await _persistentScheduler.UnscheduleJobAsync(job.Key);
+            await _storage.SaveJobAsync(job);
+            var result = await _persistentScheduler.UnscheduleJobAsync(job.Key);
 
             //Assert
-            Assert.True(success);
-            Assert.Equal("Scheduler is empty", message);
+            Assert.True(result.Success);
+            // Assert.Equal("Scheduler is empty", result.Error);
         }
     }
 }

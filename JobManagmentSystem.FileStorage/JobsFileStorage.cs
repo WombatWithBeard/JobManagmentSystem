@@ -17,7 +17,6 @@ namespace JobManagmentSystem.FileStorage
         private readonly ILogger<JobsFileStorage> _logger;
         private readonly string _fileName;
         private readonly string _path;
-        private readonly string _fileStorage;
 
         public JobsFileStorage(ILogger<JobsFileStorage> logger, string fileName = @"\jobs.ndjson")
         {
@@ -48,12 +47,14 @@ namespace JobManagmentSystem.FileStorage
         {
             try
             {
+                if (IsFileLocked()) await Task.Delay(2000);
                 var jobs = await File.ReadAllLinesAsync(_path);
 
                 if (!IsNullOrEmpty(jobs))
                     if (jobs.Any(j => j.Contains(job.Key)))
                         return Result.Fail($"Key {job.Key} already exists");
 
+                if (IsFileLocked()) await Task.Delay(2000);
                 await File.AppendAllLinesAsync(Directory.GetCurrentDirectory() + _fileName,
                     new[] {JsonSerializer.Serialize(job)});
 
@@ -70,6 +71,7 @@ namespace JobManagmentSystem.FileStorage
         {
             try
             {
+                if (IsFileLocked()) await Task.Delay(2000);
                 var jobs = await File.ReadAllLinesAsync(_path);
 
                 if (IsNullOrEmpty(jobs)) return Result.Ok("Storage is empty");
@@ -78,6 +80,7 @@ namespace JobManagmentSystem.FileStorage
 
                 var newJobs = jobs.Where(j => !j.Contains(key));
 
+                if (IsFileLocked()) await Task.Delay(2000);
                 await File.WriteAllLinesAsync(_path, newJobs);
 
                 return Result.Ok();
@@ -93,6 +96,7 @@ namespace JobManagmentSystem.FileStorage
         {
             try
             {
+                if (IsFileLocked()) await Task.Delay(2000);
                 var strJobs = await File.ReadAllLinesAsync(_path);
 
                 if (IsNullOrEmpty(strJobs)) return Result.Fail<Job[]>("Storage is empty");
@@ -112,6 +116,7 @@ namespace JobManagmentSystem.FileStorage
         {
             try
             {
+                if (IsFileLocked()) await Task.Delay(2000);
                 var jobs = await File.ReadAllLinesAsync(_path);
 
                 if (IsNullOrEmpty(jobs)) return Result.Fail<Job>("Jobs list was empty");
@@ -132,6 +137,21 @@ namespace JobManagmentSystem.FileStorage
         private bool IsNullOrEmpty<T>(IEnumerable<T> source)
         {
             return source == null || !source.Any();
+        }
+        
+        protected virtual bool IsFileLocked()
+        {
+            try
+            {
+                using var stream = File.Open(_path,FileMode.Open, FileAccess.Read, FileShare.None);
+                stream.Close();
+            }
+            catch (IOException)
+            {
+                return true;
+            }
+            
+            return false;
         }
     }
 }
