@@ -1,16 +1,18 @@
 ﻿using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
 
 namespace JobManagmentSystem.Scheduler.Common.Results
 {
     public class Result
     {
-        public bool Success { get; private set; }
-        public string Error { get; private set; }
-
-        public bool Failure
+        public Result()
         {
-            get { return !Success; }
         }
+
+        public bool Success { get; private set; }
+        public string Error { get; set; }
+
+        public bool Failure => !Success;
 
         protected Result(bool success, string error)
         {

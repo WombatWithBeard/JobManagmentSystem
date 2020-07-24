@@ -18,6 +18,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scheduler.UnitTests", "Sche
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ConsoleWriterJobService", "ConsoleWriterJobService\ConsoleWriterJobService.csproj", "{33687280-FE69-4B3E-9666-8A66E37EEE39}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scheduler.IntegrationTests", "Scheduler.IntegrationTests\Scheduler.IntegrationTests.csproj", "{85E81598-420B-4D0C-BBB0-CBD570E728AF}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -52,6 +54,10 @@ Global
 		{33687280-FE69-4B3E-9666-8A66E37EEE39}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{33687280-FE69-4B3E-9666-8A66E37EEE39}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{33687280-FE69-4B3E-9666-8A66E37EEE39}.Release|Any CPU.Build.0 = Release|Any CPU
+		{85E81598-420B-4D0C-BBB0-CBD570E728AF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{85E81598-420B-4D0C-BBB0-CBD570E728AF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{85E81598-420B-4D0C-BBB0-CBD570E728AF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{85E81598-420B-4D0C-BBB0-CBD570E728AF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(NestedProjects) = preSolution
 		{27EE5B58-9DCB-4175-8FEF-F3C9CA2508D2} = {89E7EABE-BE8F-4156-9BE4-F76CD0282612}
@@ -61,5 +67,6 @@ Global
 		{ADB36CBB-2C5B-4E8E-91DB-454727360834} = {89E7EABE-BE8F-4156-9BE4-F76CD0282612}
 		{CCF7AA72-94F8-433E-8AA2-20ED8FF46D9B} = {7F42BBBA-E221-4540-9643-58FB42A7A6EE}
 		{33687280-FE69-4B3E-9666-8A66E37EEE39} = {89E7EABE-BE8F-4156-9BE4-F76CD0282612}
+		{85E81598-420B-4D0C-BBB0-CBD570E728AF} = {7F42BBBA-E221-4540-9643-58FB42A7A6EE}
 	EndGlobalSection
 EndGlobal

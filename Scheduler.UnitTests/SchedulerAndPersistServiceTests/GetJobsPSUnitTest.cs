@@ -5,24 +5,27 @@ using JobManagmentSystem.FileStorage;
 using JobManagmentSystem.Scheduler;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
 {
-    public class GetJobsUnitTest : IDisposable
+    public class GetJobsPSUnitTest : IDisposable
     {
         private readonly JobManagmentSystem.Scheduler.Scheduler _scheduler;
         private readonly TestJobMaker _jobMaker;
         private readonly IScheduler _persistentScheduler;
         private readonly IPersistStorage _storage;
-        private string Path = $@"\{nameof(GetJobsUnitTest)}.ndjson";
+        private readonly string _path = $@"\{nameof(GetJobsPSUnitTest)}.ndjson";
 
-        public GetJobsUnitTest()
+        public GetJobsPSUnitTest()
         {
             _jobMaker = new TestJobMaker();
             _scheduler =
                 new JobManagmentSystem.Scheduler.Scheduler(NullLogger<JobManagmentSystem.Scheduler.Scheduler>.Instance);
-            _storage = new JobsFileStorage(NullLogger<JobsFileStorage>.Instance, Path);
+            var options = Options.Create(new FileStorage
+                {StoragePath = $"{nameof(GetJobsPSUnitTest)}.ndjson"});
+            _storage = new JobsFileStorage(NullLogger<JobsFileStorage>.Instance, options);
             _persistentScheduler = new PersistentScheduler(_scheduler, _storage,
                 NullLogger<PersistentScheduler>.Instance);
         }
@@ -56,9 +59,9 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
 
         public void Dispose()
         {
-            if (File.Exists(Directory.GetCurrentDirectory() + Path))
+            if (File.Exists(Directory.GetCurrentDirectory() + _path))
             {
-                File.Delete(Directory.GetCurrentDirectory() + Path);
+                File.Delete(Directory.GetCurrentDirectory() + _path);
             }
         }
     }

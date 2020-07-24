@@ -1,4 +1,5 @@
 ﻿using System.Linq;
+using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using JobManagmentSystem.Scheduler.Common.Results;
@@ -112,9 +113,10 @@ namespace JobManagmentSystem.Scheduler
 
             if (!scheduledJobsResult.Success && savedJobsResult.Success) return savedJobsResult;
             if (scheduledJobsResult.Success && !savedJobsResult.Success) return scheduledJobsResult;
+            
 
-            return Result.Combine(scheduledJobsResult, savedJobsResult).OnSuccess(() =>
-                AggregatedJobs(scheduledJobsResult.Value, savedJobsResult.Value));
+            return Result.Combine(scheduledJobsResult, savedJobsResult)
+                .OnSuccess(() => AggregatedJobs(scheduledJobsResult.Value, savedJobsResult.Value));
         }
 
         //TODO: beautify this

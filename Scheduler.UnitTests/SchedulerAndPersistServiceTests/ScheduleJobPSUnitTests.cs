@@ -5,6 +5,7 @@ using JobManagmentSystem.FileStorage;
 using JobManagmentSystem.Scheduler;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
+using Microsoft.Extensions.Options;
 using Xunit;
 
 namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
@@ -23,7 +24,9 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
             _jobMaker = new TestJobMaker();
             _scheduler =
                 new JobManagmentSystem.Scheduler.Scheduler(NullLogger<JobManagmentSystem.Scheduler.Scheduler>.Instance);
-            _storage = new JobsFileStorage(NullLogger<JobsFileStorage>.Instance, Path);
+            var options = Options.Create(new FileStorage
+                {StoragePath = $"{nameof(ScheduleJobPsUnitTests)}.ndjson"});
+            _storage = new JobsFileStorage(NullLogger<JobsFileStorage>.Instance, options);
             _persistentScheduler = new PersistentScheduler(_scheduler, _storage,
                 NullLogger<PersistentScheduler>.Instance);
         }

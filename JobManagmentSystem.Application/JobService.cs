@@ -25,10 +25,10 @@ namespace JobManagmentSystem.Application
         {
             try
             {
-                var task = _factory.Create(dto.TaskName);
+                var task = _factory.Create(dto.Name);
 
                 var job = new Job(task, Convert.ToDateTime(dto.TimeStart), dto.Interval, dto.IntervalType,
-                    dto.TaskName, dto.TaskParameters, null);
+                    dto.Name, dto.TaskParameters, dto.Key);
 
 
                 return await _scheduler.ScheduleJobAsync(job);
@@ -57,10 +57,10 @@ namespace JobManagmentSystem.Application
         {
             try
             {
-                var task = _factory.Create(dto.TaskName);
+                var task = _factory.Create(dto.Name);
 
                 var job = new Job(task, Convert.ToDateTime(dto.TimeStart), dto.Interval, dto.IntervalType,
-                    dto.TaskName, dto.TaskParameters, dto.Key);
+                    dto.Name, dto.TaskParameters, dto.Key);
 
                 return await _scheduler.RescheduleJobAsync(job);
             }

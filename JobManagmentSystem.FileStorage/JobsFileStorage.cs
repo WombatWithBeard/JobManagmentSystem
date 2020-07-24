@@ -8,21 +8,20 @@ using JobManagmentSystem.Scheduler.Common.Interfaces;
 using JobManagmentSystem.Scheduler.Common.Results;
 using JobManagmentSystem.Scheduler.Models;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 
 namespace JobManagmentSystem.FileStorage
 {
     public class JobsFileStorage : IPersistStorage
     {
         private readonly ILogger<JobsFileStorage> _logger;
-        private readonly string _fileName;
         private readonly string _path;
         private static readonly object Locker = new object();
 
-        public JobsFileStorage(ILogger<JobsFileStorage> logger, string fileName = @"\jobs.ndjson")
+        public JobsFileStorage(ILogger<JobsFileStorage> logger, IOptions<FileStorage> options)
         {
             _logger = logger;
-            _fileName = fileName;
-            _path = Directory.GetCurrentDirectory() + _fileName;
+            _path = Directory.GetCurrentDirectory() + @"\" + options.Value.StoragePath;
             DirectoryCheck();
         }
 
@@ -47,16 +46,15 @@ namespace JobManagmentSystem.FileStorage
         {
             try
             {
-                if (IsFileLocked()) await Task.Delay(2500);
+                if (IsFileLocked()) await Task.Delay(new Random().Next(1000, 4000));
                 var jobs = await File.ReadAllLinesAsync(_path);
 
                 if (!IsNullOrEmpty(jobs))
                     if (jobs.Any(j => j.Contains(job.Key)))
                         return Result.Fail($"Key {job.Key} already exists");
 
-                if (IsFileLocked()) await Task.Delay(2500);
-                await File.AppendAllLinesAsync(Directory.GetCurrentDirectory() + _fileName,
-                    new[] {JsonSerializer.Serialize(job)});
+                if (IsFileLocked()) await Task.Delay(new Random().Next(1000, 4000));
+                await File.AppendAllLinesAsync(_path, new[] {JsonSerializer.Serialize(job)});
 
                 return Result.Ok();
             }
