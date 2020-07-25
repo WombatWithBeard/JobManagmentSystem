@@ -46,14 +46,14 @@ namespace JobManagmentSystem.FileStorage
         {
             try
             {
-                if (IsFileLocked()) await Task.Delay(new Random().Next(1000, 4000));
+                // if (IsFileLocked()) await Task.Delay(new Random().Next(1000, 4000));
                 var jobs = await File.ReadAllLinesAsync(_path);
 
                 if (!IsNullOrEmpty(jobs))
                     if (jobs.Any(j => j.Contains(job.Key)))
                         return Result.Fail(FileStorageConsts.KeyAlreadyExists);
 
-                if (IsFileLocked()) await Task.Delay(new Random().Next(1000, 4000));
+                // if (IsFileLocked()) await Task.Delay(new Random().Next(1000, 4000));
                 await File.AppendAllLinesAsync(_path, new[] {JsonSerializer.Serialize(job)});
 
                 return Result.Ok();
@@ -69,7 +69,7 @@ namespace JobManagmentSystem.FileStorage
         {
             try
             {
-                if (IsFileLocked()) await Task.Delay(3000);
+                // if (IsFileLocked()) await Task.Delay(3000);
                 var jobs = await File.ReadAllLinesAsync(_path);
 
                 if (IsNullOrEmpty(jobs)) return Result.Fail(FileStorageConsts.StorageIsEmpty);
@@ -78,7 +78,7 @@ namespace JobManagmentSystem.FileStorage
 
                 var newJobs = jobs.Where(j => !j.Contains(key));
 
-                if (IsFileLocked()) await Task.Delay(3000);
+                // if (IsFileLocked()) await Task.Delay(3000);
                 await File.WriteAllLinesAsync(_path, newJobs);
                 
                 return Result.Ok();

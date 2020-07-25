@@ -1,6 +1,15 @@
-﻿using Microsoft.AspNetCore.Hosting;
+﻿using System.IO;
+using System.Net;
+using JobManagmentSystem.FileStorage;
+using JobManagmentSystem.Scheduler;
+using JobManagmentSystem.Scheduler.Common.Interfaces;
+using JobManagmentSystem.Scheduler.Models;
+using JobManagmentSystem.WebApi.Common;
+using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace Scheduler.IntegrationTests.Common
 {
@@ -10,21 +19,28 @@ namespace Scheduler.IntegrationTests.Common
         {
             builder.ConfigureTestServices(services =>
             {
-                // var scheduler =
-                //     new JobManagmentSystem.Scheduler.Scheduler(NullLogger<JobManagmentSystem.Scheduler.Scheduler>
-                //         .Instance);
-                // var options = Options.Create(new FileStorage
-                //     {StoragePath = "integrationTests.ndjson"});
-                // var storage = new JobsFileStorage(NullLogger<JobsFileStorage>.Instance, options);
-                // var persistentScheduler = new PersistentScheduler(scheduler, storage,
-                //     NullLogger<PersistentScheduler>.Instance);
-                // var testJob = new TestJobMaker();
+                // var sp = services.BuildServiceProvider();
                 //
-                // for (int i = 0; i < 10; i++)
+                // using var scope = sp.CreateScope();
+                // var provider = scope.ServiceProvider;
+                //
+                // var scheduler = provider.GetRequiredService<JobManagmentSystem.Scheduler.Scheduler>();
+                // var storage = provider.GetRequiredService<IPersistStorage>();
+                // var persistScheduler = new PersistentScheduler(scheduler, storage, NullLogger<PersistentScheduler>.Instance);
+                // var testJobMaker = new TestJobMaker();
+                //
+                // if (File.Exists(Directory.GetCurrentDirectory() + @"\" + "jobs.ndjson"))
                 // {
-                //     persistentScheduler.ScheduleJobAsync(testJob.CreateTestJob($"test{i}"));
+                //     File.Delete(Directory.GetCurrentDirectory() + @"\" + "jobs.ndjson");
+                //     // File.Create(Directory.GetCurrentDirectory() + @"\" + "jobs.ndjson");
+                // }
+                //
+                // for (int i = 0; i < 20; i++)
+                // {
+                //     persistScheduler.ScheduleJobAsync(testJobMaker.CreateTestJob($"test{i}"));
                 // }
             });
+
             base.ConfigureWebHost(builder);
         }
     }

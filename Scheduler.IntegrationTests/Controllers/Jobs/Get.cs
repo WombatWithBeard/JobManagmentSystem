@@ -28,7 +28,7 @@ namespace Scheduler.IntegrationTests.Controllers.Jobs
         {
             var jobUnit = _jobMaker.CreateJobDto(Guid.NewGuid().ToString());
             var content = Utilities.GetRequestContent(jobUnit);
-
+            
             await _client.PostAsync("api/Job/Schedule", content);
 
             var response = await _client.GetAsync($"api/Job/Get/{jobUnit.Key}");
