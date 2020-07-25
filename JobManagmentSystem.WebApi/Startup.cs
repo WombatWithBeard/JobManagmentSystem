@@ -32,6 +32,8 @@ namespace JobManagmentSystem.WebApi
             services.AddScoped<IJobService, JobService>();
 
             services.AddControllers();
+            
+            services.AddOpenApiDocument(config => { config.Title = "Job management system"; });
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -41,6 +43,9 @@ namespace JobManagmentSystem.WebApi
                 app.UseDeveloperExceptionPage();
             }
 
+            app.UseOpenApi();
+            app.UseSwaggerUi3(settings => { settings.Path = "/swagger"; });
+            
             app.UseCustomExceptionHandler();
 
             app.UseHttpsRedirection();
