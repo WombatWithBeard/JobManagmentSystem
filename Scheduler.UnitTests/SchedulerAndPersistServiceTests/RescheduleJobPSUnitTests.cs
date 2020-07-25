@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using JobManagmentSystem.FileStorage;
 using JobManagmentSystem.Scheduler;
+using JobManagmentSystem.Scheduler.Common.Exceptions;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -47,16 +48,13 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
         }
 
         [Fact]
-        public async Task RescheduleJobWithEmptyScheduleAndPersistence_ValidResult()
+        public async Task RescheduleJob_NotFoundResult()
         {
             //Arrange
             var job = _jobMaker.CreateTestJob();
-
-            //Act
-            var result = await _persistentScheduler.RescheduleJobAsync(job);
-
+            
             //Assert
-            Assert.True(result.Success);
+            await Assert.ThrowsAsync<NotFoundException>(() => _persistentScheduler.RescheduleJobAsync(job));
         }
 
         public void Dispose()

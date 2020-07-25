@@ -1,6 +1,4 @@
 ﻿using System.Diagnostics.CodeAnalysis;
-using System.Drawing;
-using System.Text.Json.Serialization;
 
 namespace JobManagmentSystem.Scheduler.Common.Results
 {
@@ -9,9 +7,9 @@ namespace JobManagmentSystem.Scheduler.Common.Results
         public Result()
         {
         }
-        
-        public bool Success { get;  set; }
-        public string Error { get;  set; }
+
+        public bool Success { get; set; }
+        public string Error { get; set; }
 
         public bool Failure => !Success;
 
@@ -64,18 +62,7 @@ namespace JobManagmentSystem.Scheduler.Common.Results
         {
         }
 
-        private T _value;
-
-        public T Value
-        {
-            get
-            {
-                Contracts.Require(Success);
-
-                return _value;
-            }
-            [param: AllowNull] set => _value = value;
-        }
+        public T Value { get; [param: AllowNull] set; }
 
         protected internal Result([AllowNull] T value, bool success, string error)
             : base(success, error)

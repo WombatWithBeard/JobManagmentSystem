@@ -38,7 +38,11 @@ namespace JobManagmentSystem.Scheduler
         public async Task<Result> UnscheduleJobAsync(string key)
         {
             var unscheduledJob = await TryUnscheduleJob(key);
+            if (!unscheduledJob.Success && unscheduledJob.Error != SchedulerConsts.JobUnscheduleFailed)
+                throw new NotFoundException(nameof(Job), key);
+
             var deletedJob = await TryDeleteJob(key);
+            if (!deletedJob.Success) throw new NotFoundException(nameof(Job), key);
 
             return Result.Combine(unscheduledJob, deletedJob);
         }

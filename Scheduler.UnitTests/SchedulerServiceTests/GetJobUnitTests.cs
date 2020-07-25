@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using JobManagmentSystem.Scheduler;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -56,7 +57,7 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
 
             //Assert
             Assert.True(result.Failure);
-            Assert.Equal("Job: Test is not scheduled", result.Error);
+            Assert.Equal(SchedulerConsts.JobIsNotScheduled, result.Error);
         }
     }
 }

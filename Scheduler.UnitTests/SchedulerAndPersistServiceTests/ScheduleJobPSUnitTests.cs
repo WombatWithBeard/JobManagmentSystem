@@ -56,7 +56,7 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
 
             //Assert
             Assert.True(result.Failure);
-            Assert.Equal($"Job {job.Key} already scheduled", result.Error);
+            Assert.Equal(SchedulerConsts.JobAlreadyScheduled, result.Error);
         }
 
         [Fact]
@@ -71,7 +71,7 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
 
             //Assert
             Assert.True(result.Failure);
-            Assert.Equal($"Key {job.Key} already exists", result.Error);
+            Assert.Equal(FileStorageConsts.KeyAlreadyExists, result.Error);
         }
 
         public void Dispose()

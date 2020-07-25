@@ -1,7 +1,6 @@
 ﻿using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
-using JobManagmentSystem.Application;
 using JobManagmentSystem.Scheduler.Common.Results;
 using JobManagmentSystem.WebApi;
 using Scheduler.IntegrationTests.Common;
@@ -28,7 +27,7 @@ namespace Scheduler.IntegrationTests.Controllers.Jobs
             var jobUnit = _jobMaker.CreateJobDto();
             var content = Utilities.GetRequestContent(jobUnit);
 
-            var response = await _client.PostAsync("api/Job/Create", content);
+            var response = await _client.PostAsync("api/Job/Schedule", content);
 
             response.EnsureSuccessStatusCode();
 
@@ -38,14 +37,14 @@ namespace Scheduler.IntegrationTests.Controllers.Jobs
         }
 
         [Fact]
-        public async Task Schedule_ReturnsInternalServerErrorStatusCode()
+        public async Task Schedule_ReturnsBadRequestStatusCode()
         {
             var jobUnit = new object();
             var content = Utilities.GetRequestContent(jobUnit);
 
-            var response = await _client.PostAsync("api/Job/Create", content);
+            var response = await _client.PostAsync("api/Job/Schedule", content);
 
-            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
     }
 }

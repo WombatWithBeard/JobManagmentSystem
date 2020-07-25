@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Threading.Tasks;
+using JobManagmentSystem.Application.Common.Exceptions;
 using JobManagmentSystem.Scheduler.Common.Exceptions;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
@@ -35,12 +36,12 @@ namespace JobManagmentSystem.WebApi.Common
 
             var result = string.Empty;
 
-            switch (exception)
+            code = exception switch
             {
-                case NotFoundException _:
-                    code = HttpStatusCode.NotFound;
-                    break;
-            }
+                NotFoundException _ => HttpStatusCode.NotFound,
+                WrongTaskNameBadRequestException _ => HttpStatusCode.BadRequest,
+                _ => code
+            };
 
             context.Response.ContentType = "application/json";
             context.Response.StatusCode = (int) code;

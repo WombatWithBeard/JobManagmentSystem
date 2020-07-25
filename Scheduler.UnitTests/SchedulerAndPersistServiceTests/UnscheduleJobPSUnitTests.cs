@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading.Tasks;
 using JobManagmentSystem.FileStorage;
 using JobManagmentSystem.Scheduler;
+using JobManagmentSystem.Scheduler.Common.Exceptions;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -42,22 +43,13 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
 
             //Assert
             Assert.True(result.Success);
-            // Assert.Equal($"Job {job.Key} was successfully unscheduled", message);
         }
 
         [Fact]
-        public async Task DeleteJob_SchedulerIsEmptyResult()
+        public async Task DeleteJob_NotFoundResult()
         {
-            //Arrange
-            var job = _jobMaker.CreateTestJob();
-
-            //Act
-            await _storage.SaveJobAsync(job);
-            var result = await _persistentScheduler.UnscheduleJobAsync(job.Key);
-
             //Assert
-            Assert.True(result.Success);
-            // Assert.Equal("Scheduler is empty", result.Error);
+            await Assert.ThrowsAsync<NotFoundException>(() => _persistentScheduler.UnscheduleJobAsync("test789"));
         }
 
         public void Dispose()

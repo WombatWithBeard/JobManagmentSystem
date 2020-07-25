@@ -51,7 +51,7 @@ namespace JobManagmentSystem.FileStorage
 
                 if (!IsNullOrEmpty(jobs))
                     if (jobs.Any(j => j.Contains(job.Key)))
-                        return Result.Fail($"Key {job.Key} already exists");
+                        return Result.Fail(FileStorageConsts.KeyAlreadyExists);
 
                 if (IsFileLocked()) await Task.Delay(new Random().Next(1000, 4000));
                 await File.AppendAllLinesAsync(_path, new[] {JsonSerializer.Serialize(job)});
@@ -72,16 +72,15 @@ namespace JobManagmentSystem.FileStorage
                 if (IsFileLocked()) await Task.Delay(3000);
                 var jobs = await File.ReadAllLinesAsync(_path);
 
-                if (IsNullOrEmpty(jobs)) return Result.Ok("Storage is empty");
+                if (IsNullOrEmpty(jobs)) return Result.Fail(FileStorageConsts.StorageIsEmpty);
 
-                if (!jobs.Any(j => j.Contains(key))) return Result.Fail($"Key {key} not exists");
+                if (!jobs.Any(j => j.Contains(key))) return Result.Fail(FileStorageConsts.KeyNotExists);
 
                 var newJobs = jobs.Where(j => !j.Contains(key));
 
                 if (IsFileLocked()) await Task.Delay(3000);
                 await File.WriteAllLinesAsync(_path, newJobs);
-
-
+                
                 return Result.Ok();
             }
             catch (Exception e)
@@ -98,7 +97,7 @@ namespace JobManagmentSystem.FileStorage
                 if (IsFileLocked()) await Task.Delay(2500);
                 var strJobs = File.ReadAllLinesAsync(_path).Result;
 
-                if (IsNullOrEmpty(strJobs)) return Result.Fail<Job[]>("Storage is empty");
+                if (IsNullOrEmpty(strJobs)) return Result.Fail<Job[]>(FileStorageConsts.StorageIsEmpty);
 
                 var jobs = strJobs.Select(j => JsonSerializer.Deserialize<Job>(j)).ToArray();
 
@@ -118,11 +117,11 @@ namespace JobManagmentSystem.FileStorage
                 if (IsFileLocked()) await Task.Delay(2500);
                 var jobs = File.ReadAllLinesAsync(_path).Result;
 
-                if (IsNullOrEmpty(jobs)) return Result.Fail<Job>("Jobs list was empty");
+                if (IsNullOrEmpty(jobs)) return Result.Fail<Job>(FileStorageConsts.JobsListWasEmpty);
 
                 var job = JsonSerializer.Deserialize<Job>(jobs.FirstOrDefault(j => j.Contains(key)));
 
-                if (job == null) Result.Fail<Job>("Jobs list was empty");
+                if (job == null) Result.Fail<Job>(FileStorageConsts.KeyNotExists);
 
                 return Result.Ok(job);
             }
@@ -152,5 +151,13 @@ namespace JobManagmentSystem.FileStorage
 
             return false;
         }
+    }
+
+    public class FileStorageConsts
+    {
+        public const string JobsListWasEmpty = "Jobs list was empty";
+        public const string KeyNotExists = "Key not exists";
+        public const string StorageIsEmpty = "Storage is empty";
+        public const string KeyAlreadyExists = "Key already exists";
     }
 }

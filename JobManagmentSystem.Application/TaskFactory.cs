@@ -1,6 +1,6 @@
-﻿using System;
-using ConsoleWriterJobService;
+﻿using ConsoleWriterJobService;
 using FileCopyJobService;
+using JobManagmentSystem.Application.Common.Exceptions;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.Extensions.Logging;
 
@@ -19,7 +19,7 @@ namespace JobManagmentSystem.Application
         {
             TaskNameConstants.FileCopyJob => new FileCopyJobTask(_logger),
             TaskNameConstants.ConsoleWriteJob => new ConsoleWriteJobTask(_logger),
-            _ => throw new Exception("Task with this alias was not found")
+            _ => throw new WrongTaskNameBadRequestException(name)
         };
     }
 

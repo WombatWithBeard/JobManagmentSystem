@@ -1,6 +1,10 @@
-﻿using System.Text.Json;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
 using System.Threading.Tasks;
 using JobManagmentSystem.Application;
+using JobManagmentSystem.Scheduler.Common.Results;
+using JobManagmentSystem.Scheduler.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JobManagmentSystem.WebApi.Controllers
@@ -17,7 +21,7 @@ namespace JobManagmentSystem.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] JobDto dto)
+        public async Task<IActionResult> Schedule([FromBody] JobDto dto)
         {
             var createJob = await _service.ScheduleJobAsync(dto);
 
@@ -25,7 +29,7 @@ namespace JobManagmentSystem.WebApi.Controllers
         }
 
         [HttpDelete("{key}")]
-        public async Task<IActionResult> Delete(string key)
+        public async Task<IActionResult> Unschedule(string key)
         {
             var deleteJob = await _service.UncheduleJobAsync(key);
 

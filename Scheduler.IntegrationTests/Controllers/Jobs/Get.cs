@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
-using System.Reflection.Metadata;
 using System.Threading.Tasks;
 using JobManagmentSystem.Scheduler.Common.Results;
 using JobManagmentSystem.Scheduler.Models;
@@ -30,7 +29,7 @@ namespace Scheduler.IntegrationTests.Controllers.Jobs
             var jobUnit = _jobMaker.CreateJobDto(Guid.NewGuid().ToString());
             var content = Utilities.GetRequestContent(jobUnit);
 
-            await _client.PostAsync("api/Job/Create", content);
+            await _client.PostAsync("api/Job/Schedule", content);
 
             var response = await _client.GetAsync($"api/Job/Get/{jobUnit.Key}");
 

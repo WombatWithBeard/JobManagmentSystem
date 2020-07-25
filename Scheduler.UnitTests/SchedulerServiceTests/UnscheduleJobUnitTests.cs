@@ -1,4 +1,5 @@
 ﻿using System.Threading.Tasks;
+using JobManagmentSystem.Scheduler;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -29,7 +30,6 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
 
             //Assert
             Assert.True(result.Success);
-            // Assert.Equal($"Job {job.Key} was successfully unscheduled", message);
         }
 
         [Fact]
@@ -39,8 +39,8 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
             var result = await _scheduler.UnscheduleJobAsync("key");
 
             //Assert
-            Assert.True(result.Success);
-            // Assert.Equal("Scheduler is empty", result.Error);
+            Assert.True(result.Failure);
+            Assert.Equal(SchedulerConsts.SchedulerIsEmpty, result.Error);
         }
     }
 }

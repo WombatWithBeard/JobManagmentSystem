@@ -1,9 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using JobManagmentSystem.FileStorage;
 using JobManagmentSystem.Scheduler;
+using JobManagmentSystem.Scheduler.Common.Exceptions;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Extensions.Options;
@@ -46,33 +46,27 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
             //Assert
             Assert.True(result.Success);
             Assert.NotNull(result.Value);
-            // Assert.Equal($"Job: {newJob.Key} is active", message);
+            Assert.Equal(newJob.Key, result.Value.Key);
         }
 
         [Fact]
-        public async Task GetJobById_SchedulerIsEmptyResult()
+        public async Task GetJobById_SchedulerIsEmptyNotFoundResult()
         {
-            //Act
-            var result = await _persistentScheduler.GetJob("Test");
-
             //Assert
-            Assert.True(result.Failure);
-            Assert.Equal("Scheduler is empty", result.Error);
+            await Assert.ThrowsAsync<NotFoundException>(() => _persistentScheduler.GetJob("Test"));
         }
 
         [Fact]
-        public async Task GetJobById_JobNotScheduledResult()
+        public async Task GetJobById_JobNotFoundResult()
         {
             //Arrange
             var newJob = _jobMaker.CreateTestJob();
 
             //Act
             await _persistentScheduler.ScheduleJobAsync(newJob);
-            var result = await _persistentScheduler.GetJob("Test");
 
             //Assert
-            Assert.True(result.Failure);
-            Assert.Equal("Job: Test is not scheduled", result.Error);
+            await Assert.ThrowsAsync<NotFoundException>(() => _persistentScheduler.GetJob("Test"));
         }
 
         public void Dispose()

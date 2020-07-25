@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using JobManagmentSystem.Scheduler;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
@@ -32,7 +33,7 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
         }
 
         [Fact]
-        public async Task AddJob_KeyAlreadyExistsResult()
+        public async Task AddJob_JobAlreadyScheduledResult()
         {
             //Arrange
             var job = _jobMaker.CreateTestJob();
@@ -43,7 +44,7 @@ namespace Scheduler.UnitTests.SchedulerServiceTests
 
             //Assert
             Assert.True(result.Failure);
-            Assert.Equal($"Job {job.Key} already scheduled", result.Error);
+            Assert.Equal(SchedulerConsts.JobAlreadyScheduled, result.Error);
         }
     }
 }

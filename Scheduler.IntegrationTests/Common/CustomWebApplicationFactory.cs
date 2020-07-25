@@ -1,10 +1,6 @@
-﻿using JobManagmentSystem.FileStorage;
-using JobManagmentSystem.Scheduler;
-using Microsoft.AspNetCore.Hosting;
+﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Extensions.Options;
 
 namespace Scheduler.IntegrationTests.Common
 {
