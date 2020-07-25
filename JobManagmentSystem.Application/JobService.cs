@@ -44,6 +44,10 @@ namespace JobManagmentSystem.Application
         {
             try
             {
+                if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key))
+                {
+                    Console.WriteLine("THIS SHIT");
+                }
                 return await _scheduler.UnscheduleJobAsync(key);
             }
             catch (Exception e)
@@ -70,39 +74,6 @@ namespace JobManagmentSystem.Application
                 throw;
             }
         }
-
-        // public async Task<Dictionary<string, (bool success, string message)>> ReScheduleAllJobsAsync()
-        // {
-        //     try
-        //     {
-        //         var jobsListAsync = await _scheduler.GetJobsListAsync();
-        //
-        //         if (!jobsListAsync.success) throw new Exception(jobsListAsync.message);
-        //
-        //         if (jobsListAsync.success && jobsListAsync.jobs.Length <= 0) throw new Exception("No data available");
-        //
-        //         //TODO: Need mapping
-        //         var dict = new Dictionary<string, (bool success, string message)>();
-        //
-        //         foreach (var jobS in jobsListAsync.jobs)
-        //         {
-        //             var job = JsonSerializer.Deserialize<Job>(jobS);
-        //
-        //             job.Task = _factory.Create(job.Name, job.TaskParameters);
-        //
-        //             var reScheduleResult = await _scheduler.ReScheduleJobAsync(job);
-        //
-        //             dict.Add(job.Key, reScheduleResult);
-        //         }
-        //
-        //         return dict;
-        //     }
-        //     catch (Exception e)
-        //     {
-        //         _logger.LogError(e.Message);
-        //         throw;
-        //     }
-        // }
 
         public async Task<Result<Job>> GetJobByIdAsync(string key)
         {

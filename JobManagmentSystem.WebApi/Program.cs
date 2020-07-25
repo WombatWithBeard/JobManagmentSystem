@@ -1,6 +1,10 @@
 using System;
 using System.IO;
+using JobManagmentSystem.Scheduler;
+using JobManagmentSystem.Scheduler.Common.Interfaces;
+using JobManagmentSystem.WebApi.Common;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Serilog;
 using Serilog.Events;
@@ -28,7 +32,18 @@ namespace JobManagmentSystem.WebApi
             try
             {
                 Log.Information("Starting up");
-                CreateHostBuilder(args).Build().Run();
+                var host = CreateHostBuilder(args).Build();
+
+                using (var scope = host.Services.CreateScope())
+                {
+                    var services = scope.ServiceProvider;
+
+                    var scheduler = services.GetRequiredService<Scheduler.Scheduler>();
+                    var storage = services.GetRequiredService<IPersistStorage>();
+                    RescheduleJobs.Reschedule(scheduler, storage);
+                }
+                
+                host.Run();
             }
             catch (Exception ex)
             {

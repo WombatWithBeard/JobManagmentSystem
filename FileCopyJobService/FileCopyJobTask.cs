@@ -40,6 +40,7 @@ namespace FileCopyJobService
             catch (Exception e)
             {
                 _logger.LogError($"Job {nameof(FileCopyJobTask)} failed");
+                _logger.LogError(e.Message);
                 return Task.CompletedTask;
             }
         }
