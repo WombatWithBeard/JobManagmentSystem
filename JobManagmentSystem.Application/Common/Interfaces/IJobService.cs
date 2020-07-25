@@ -2,7 +2,7 @@
 using JobManagmentSystem.Scheduler.Common.Results;
 using JobManagmentSystem.Scheduler.Models;
 
-namespace JobManagmentSystem.Application
+namespace JobManagmentSystem.Application.Common.Interfaces
 {
     public interface IJobService
     {

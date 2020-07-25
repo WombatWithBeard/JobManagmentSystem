@@ -1,4 +1,5 @@
 using JobManagmentSystem.Application;
+using JobManagmentSystem.Application.Common.Interfaces;
 using JobManagmentSystem.FileStorage;
 using JobManagmentSystem.Scheduler;
 using JobManagmentSystem.Scheduler.Common.Interfaces;

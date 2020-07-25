@@ -1,5 +1,8 @@
 ﻿using System;
+using System.Net.Http.Headers;
 using System.Threading.Tasks;
+using JobManagmentSystem.Application.Common.Exceptions;
+using JobManagmentSystem.Application.Common.Interfaces;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using JobManagmentSystem.Scheduler.Common.Results;
 using JobManagmentSystem.Scheduler.Models;
@@ -13,7 +16,7 @@ namespace JobManagmentSystem.Application
         private readonly TaskFactory _factory;
         private readonly ILogger<JobService> _logger;
 
-        public JobService(IScheduler scheduler, TaskFactory factory, IPersistStorage storage,
+        public JobService(IScheduler scheduler, TaskFactory factory,
             ILogger<JobService> logger)
         {
             _scheduler = scheduler;
@@ -44,10 +47,8 @@ namespace JobManagmentSystem.Application
         {
             try
             {
-                if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key))
-                {
-                    Console.WriteLine("THIS SHIT");
-                }
+                IsKeyEmptyOrNull(key);
+
                 return await _scheduler.UnscheduleJobAsync(key);
             }
             catch (Exception e)
@@ -57,10 +58,19 @@ namespace JobManagmentSystem.Application
             }
         }
 
+        private void IsKeyEmptyOrNull(string key)
+        {
+            if (string.IsNullOrEmpty(key) || string.IsNullOrWhiteSpace(key))
+            {
+                throw new WrongKeyBadRequestException(key);
+            }
+        }
+
         public async Task<Result> RescheduleJobAsync(JobDto dto)
         {
             try
             {
+                IsKeyEmptyOrNull(dto.Key);
                 var task = _factory.Create(dto.Name);
 
                 var job = new Job(task, Convert.ToDateTime(dto.TimeStart), dto.Interval, dto.IntervalType,
@@ -79,6 +89,7 @@ namespace JobManagmentSystem.Application
         {
             try
             {
+                IsKeyEmptyOrNull(key);
                 return await _scheduler.GetJob(key);
             }
             catch (Exception e)

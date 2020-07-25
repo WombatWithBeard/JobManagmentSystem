@@ -3,7 +3,6 @@ using System.Net;
 using System.Threading.Tasks;
 using JobManagmentSystem.Application.Common.Exceptions;
 using JobManagmentSystem.Scheduler.Common.Exceptions;
-using JobManagmentSystem.Scheduler.Common.Interfaces;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Http;
 using Newtonsoft.Json;
@@ -41,6 +40,7 @@ namespace JobManagmentSystem.WebApi.Common
             {
                 NotFoundException _ => HttpStatusCode.NotFound,
                 WrongTaskNameBadRequestException _ => HttpStatusCode.BadRequest,
+                WrongKeyBadRequestException _ => HttpStatusCode.BadRequest,
                 _ => code
             };
 

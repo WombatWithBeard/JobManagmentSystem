@@ -1,6 +1,5 @@
 using System;
 using System.IO;
-using JobManagmentSystem.Scheduler;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using JobManagmentSystem.WebApi.Common;
 using Microsoft.AspNetCore.Hosting;

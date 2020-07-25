@@ -1,10 +1,7 @@
-﻿using System.Collections.Generic;
-using System.Linq;
-using System.Text.Json;
+﻿using System.Text.Json;
 using System.Threading.Tasks;
 using JobManagmentSystem.Application;
-using JobManagmentSystem.Scheduler.Common.Results;
-using JobManagmentSystem.Scheduler.Models;
+using JobManagmentSystem.Application.Common.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
 namespace JobManagmentSystem.WebApi.Controllers
