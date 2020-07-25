@@ -10,6 +10,5 @@ namespace JobManagmentSystem.Application
         [Required] public double Interval { get; set; }
         [Required] public string TimeStart { get; set; }
         public object TaskParameters { get; set; }
-        public string Status { get; set; } //TODO: 
     }
 }

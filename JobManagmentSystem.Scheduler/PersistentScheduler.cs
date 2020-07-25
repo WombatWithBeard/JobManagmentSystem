@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using JobManagmentSystem.Scheduler.Common.Enums;
 using JobManagmentSystem.Scheduler.Common.Exceptions;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using JobManagmentSystem.Scheduler.Common.Results;
@@ -27,8 +28,6 @@ namespace JobManagmentSystem.Scheduler
         {
             var schedulingResult = await _scheduler.ScheduleJobAsync(job);
             var savingResult = await _storage.SaveJobAsync(job);
-
-            //TODO: check on both 
 
             return Result.Combine(schedulingResult, savingResult)
                 .OnFailure(async () => await UnscheduleJobAsync(job.Key))
@@ -103,7 +102,6 @@ namespace JobManagmentSystem.Scheduler
 
         private Job AggregatedJob(Job scheduledJobValue, Job savedJobValue)
         {
-            //TODO: and this shit
             if (scheduledJobValue.Key != savedJobValue.Key) return scheduledJobValue;
 
             scheduledJobValue.Scheduled = true;
@@ -120,16 +118,14 @@ namespace JobManagmentSystem.Scheduler
             if (!scheduledJobsResult.Success && savedJobsResult.Success) return savedJobsResult;
             if (scheduledJobsResult.Success && !savedJobsResult.Success) return scheduledJobsResult;
 
-
             return Result.Combine(scheduledJobsResult, savedJobsResult)
                 .OnSuccess(() => AggregatedJobs(scheduledJobsResult.Value, savedJobsResult.Value));
         }
 
-        //TODO: beautify this
         private Job[] AggregatedJobs(Job[] scheduledJobs, Job[] persistedJobs)
         {
-            if (scheduledJobs == null && persistedJobs != null) return ProcessedJobs(persistedJobs, 1);
-            if (persistedJobs == null) return ProcessedJobs(scheduledJobs, 0);
+            if (scheduledJobs == null && persistedJobs != null) return ProcessedJobs(persistedJobs, JobsType.Persisted);
+            if (persistedJobs == null) return ProcessedJobs(scheduledJobs, JobsType.Scheduled);
 
             var runningJobsDict = scheduledJobs.ToDictionary(job => job.Key);
             var persistedJobsDict = persistedJobs.ToDictionary(job => job.Key);
@@ -161,12 +157,11 @@ namespace JobManagmentSystem.Scheduler
             return unionJobs.Values.ToArray();
         }
 
-        private Job[] ProcessedJobs(Job[] jobs, int type)
+        private Job[] ProcessedJobs(Job[] jobs, JobsType type)
         {
             var result = jobs.ToList();
 
-            //TODO: TYPE ?????? Enum?
-            if (type == 1)
+            if (type == JobsType.Persisted)
             {
                 result.ForEach(j => j.Persisted = true);
                 result.ForEach(j => j.Scheduled = false);

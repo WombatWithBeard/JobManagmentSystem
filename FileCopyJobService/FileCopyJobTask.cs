@@ -16,8 +16,7 @@ namespace FileCopyJobService
         {
             _logger = logger;
         }
-
-        //TODO: clear this, and how to add logging?
+        
         public Task Invoke(object? state)
         {
             try

@@ -15,7 +15,6 @@ namespace JobManagmentSystem.Scheduler.Common.Results
 
         protected Result(bool success, string error)
         {
-            //TODO: chech this
             Contracts.Require(success || !string.IsNullOrEmpty(error));
             Contracts.Require(!success || string.IsNullOrEmpty(error));
 
