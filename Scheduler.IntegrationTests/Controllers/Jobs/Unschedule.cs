@@ -11,14 +11,12 @@ namespace Scheduler.IntegrationTests.Controllers.Jobs
 {
     public class Unschedule : IClassFixture<CustomWebApplicationFactory<Startup>>
     {
-        private readonly CustomWebApplicationFactory<Startup> _factory;
         private HttpClient _client;
         private TestJobMaker _jobMaker;
 
         public Unschedule(CustomWebApplicationFactory<Startup> factory)
         {
-            _factory = factory;
-            _client = _factory.CreateClient();
+            _client = factory.CreateClient();
             _jobMaker = new TestJobMaker();
         }
 

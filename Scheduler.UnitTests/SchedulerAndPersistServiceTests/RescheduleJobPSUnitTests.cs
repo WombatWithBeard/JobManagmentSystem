@@ -13,21 +13,18 @@ namespace Scheduler.UnitTests.SchedulerAndPersistServiceTests
 {
     public class RescheduleJobPsUnitTests : IDisposable
     {
-        private readonly JobManagmentSystem.Scheduler.Scheduler _scheduler;
         private readonly TestJobMaker _jobMaker;
         private readonly IScheduler _persistentScheduler;
-        private readonly IPersistStorage _storage;
         private readonly string _path = $@"\{nameof(RescheduleJobPsUnitTests)}.ndjson";
 
         public RescheduleJobPsUnitTests()
         {
             _jobMaker = new TestJobMaker();
-            _scheduler =
-                new JobManagmentSystem.Scheduler.Scheduler(NullLogger<JobManagmentSystem.Scheduler.Scheduler>.Instance);
+            var scheduler = new JobManagmentSystem.Scheduler.Scheduler(NullLogger<JobManagmentSystem.Scheduler.Scheduler>.Instance);
             var options = Options.Create(new FileStorage
                 {StoragePath = $"{nameof(RescheduleJobPsUnitTests)}.ndjson"});
-            _storage = new JobsFileStorage(NullLogger<JobsFileStorage>.Instance, options);
-            _persistentScheduler = new PersistentScheduler(_scheduler, _storage,
+            IPersistStorage storage = new JobsFileStorage(NullLogger<JobsFileStorage>.Instance, options);
+            _persistentScheduler = new PersistentScheduler(scheduler, storage,
                 NullLogger<PersistentScheduler>.Instance);
         }
 

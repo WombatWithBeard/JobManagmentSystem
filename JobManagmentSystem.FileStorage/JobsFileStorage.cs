@@ -46,14 +46,12 @@ namespace JobManagmentSystem.FileStorage
         {
             try
             {
-                // if (IsFileLocked()) await Task.Delay(new Random().Next(1000, 4000));
                 var jobs = await File.ReadAllLinesAsync(_path);
 
                 if (!IsNullOrEmpty(jobs))
                     if (jobs.Any(j => j.Contains(job.Key)))
                         return Result.Fail(FileStorageConsts.KeyAlreadyExists);
 
-                // if (IsFileLocked()) await Task.Delay(new Random().Next(1000, 4000));
                 await File.AppendAllLinesAsync(_path, new[] {JsonSerializer.Serialize(job)});
 
                 return Result.Ok();
@@ -69,7 +67,6 @@ namespace JobManagmentSystem.FileStorage
         {
             try
             {
-                // if (IsFileLocked()) await Task.Delay(3000);
                 var jobs = await File.ReadAllLinesAsync(_path);
 
                 if (IsNullOrEmpty(jobs)) return Result.Fail(FileStorageConsts.StorageIsEmpty);
@@ -78,7 +75,6 @@ namespace JobManagmentSystem.FileStorage
 
                 var newJobs = jobs.Where(j => !j.Contains(key));
 
-                // if (IsFileLocked()) await Task.Delay(3000);
                 await File.WriteAllLinesAsync(_path, newJobs);
                 
                 return Result.Ok();
@@ -94,7 +90,6 @@ namespace JobManagmentSystem.FileStorage
         {
             try
             {
-                if (IsFileLocked()) await Task.Delay(2500);
                 var strJobs = File.ReadAllLinesAsync(_path).Result;
 
                 if (IsNullOrEmpty(strJobs)) return Result.Fail<Job[]>(FileStorageConsts.StorageIsEmpty);
@@ -114,7 +109,6 @@ namespace JobManagmentSystem.FileStorage
         {
             try
             {
-                if (IsFileLocked()) await Task.Delay(2500);
                 var jobs = File.ReadAllLinesAsync(_path).Result;
 
                 if (IsNullOrEmpty(jobs)) return Result.Fail<Job>(FileStorageConsts.JobsListWasEmpty);
@@ -135,21 +129,6 @@ namespace JobManagmentSystem.FileStorage
         private bool IsNullOrEmpty<T>(IEnumerable<T> source)
         {
             return source == null || !source.Any();
-        }
-
-        protected virtual bool IsFileLocked()
-        {
-            try
-            {
-                using var stream = File.Open(_path, FileMode.Open, FileAccess.Read, FileShare.None);
-                stream.Close();
-            }
-            catch (IOException)
-            {
-                return true;
-            }
-
-            return false;
         }
     }
 

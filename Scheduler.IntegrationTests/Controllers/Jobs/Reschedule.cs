@@ -11,14 +11,12 @@ namespace Scheduler.IntegrationTests.Controllers.Jobs
 {
     public class Reschedule : IClassFixture<CustomWebApplicationFactory<Startup>>
     {
-        private readonly CustomWebApplicationFactory<Startup> _factory;
         private HttpClient _client;
         private TestJobMaker _jobMaker;
 
         public Reschedule(CustomWebApplicationFactory<Startup> factory)
         {
-            _factory = factory;
-            _client = _factory.CreateClient();
+            _client = factory.CreateClient();
             _jobMaker = new TestJobMaker();
         }
 
