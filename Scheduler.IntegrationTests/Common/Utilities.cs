@@ -16,7 +16,7 @@ namespace Scheduler.IntegrationTests.Common
         {
             var stringResponse = await response.Content.ReadAsStringAsync();
 
-            var result =  JsonSerializer.Deserialize<T>(stringResponse);
+            var result = JsonSerializer.Deserialize<T>(stringResponse);
 
             return result;
         }

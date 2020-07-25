@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Net;
 using System.Net.Http;
+using System.Reflection.Metadata;
 using System.Threading.Tasks;
 using JobManagmentSystem.Scheduler.Common.Results;
 using JobManagmentSystem.Scheduler.Models;
@@ -25,30 +26,36 @@ namespace Scheduler.IntegrationTests.Controllers.Jobs
 
         [Fact]
         public async Task Get_ReturnsSuccessStatusCode()
-        { 
+        {
             var jobUnit = _jobMaker.CreateJobDto(Guid.NewGuid().ToString());
             var content = Utilities.GetRequestContent(jobUnit);
 
             await _client.PostAsync("api/Job/Create", content);
-            
+
             var response = await _client.GetAsync($"api/Job/Get/{jobUnit.Key}");
 
             response.EnsureSuccessStatusCode();
 
-            var vm = await Utilities.GetResponseContent<Result>(response);
+            var vm = await Utilities.GetResponseContent<Result<Job>>(response);
 
             Assert.True(vm.Success);
+            Assert.Equal(jobUnit.Key, vm.Value.Key);
         }
 
         [Fact]
-        public async Task Get_ReturnsNotFoundStatusCode()
+        public async Task Get_WrongKeyReturnsNotFoundStatusCode()
         {
-            var jobUnit = new object();
-            var content = Utilities.GetRequestContent(jobUnit);
+            var response = await _client.GetAsync("api/Job/Get/test");
 
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
+        }
+        
+        [Fact]
+        public async Task Get_EmptyKeyReturnsNotFoundStatusCode()
+        {
             var response = await _client.GetAsync("api/Job/Get");
 
-            Assert.Equal(HttpStatusCode.InternalServerError, response.StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, response.StatusCode);
         }
     }
 }

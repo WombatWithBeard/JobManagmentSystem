@@ -2,6 +2,7 @@ using JobManagmentSystem.Application;
 using JobManagmentSystem.FileStorage;
 using JobManagmentSystem.Scheduler;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
+using JobManagmentSystem.WebApi.Common;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -22,7 +23,7 @@ namespace JobManagmentSystem.WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.Configure<FileStorage.FileStorage>(Configuration.GetSection(FileStorage.FileStorage.Storage));
-            
+
             services.AddSingleton<Scheduler.Scheduler>();
             services.AddSingleton<IPersistStorage, JobsFileStorage>();
             services.AddScoped<IScheduler, PersistentScheduler>();
@@ -38,6 +39,8 @@ namespace JobManagmentSystem.WebApi
             {
                 app.UseDeveloperExceptionPage();
             }
+
+            app.UseCustomExceptionHandler();
 
             app.UseHttpsRedirection();
 

@@ -1,6 +1,6 @@
 ﻿using System.Linq;
-using System.Reflection.Metadata.Ecma335;
 using System.Threading.Tasks;
+using JobManagmentSystem.Scheduler.Common.Exceptions;
 using JobManagmentSystem.Scheduler.Common.Interfaces;
 using JobManagmentSystem.Scheduler.Common.Results;
 using JobManagmentSystem.Scheduler.Models;
@@ -90,6 +90,8 @@ namespace JobManagmentSystem.Scheduler
 
             if (!scheduledJobResult.Success && savedJobResult.Success) return savedJobResult;
             if (scheduledJobResult.Success && !savedJobResult.Success) return scheduledJobResult;
+            if (!scheduledJobResult.Success && !savedJobResult.Success)
+                throw new NotFoundException(nameof(Job), key);
 
             return Result.Combine(scheduledJobResult, savedJobResult)
                 .OnSuccess(() => AggregatedJob(scheduledJobResult.Value, savedJobResult.Value));
@@ -113,7 +115,7 @@ namespace JobManagmentSystem.Scheduler
 
             if (!scheduledJobsResult.Success && savedJobsResult.Success) return savedJobsResult;
             if (scheduledJobsResult.Success && !savedJobsResult.Success) return scheduledJobsResult;
-            
+
 
             return Result.Combine(scheduledJobsResult, savedJobsResult)
                 .OnSuccess(() => AggregatedJobs(scheduledJobsResult.Value, savedJobsResult.Value));

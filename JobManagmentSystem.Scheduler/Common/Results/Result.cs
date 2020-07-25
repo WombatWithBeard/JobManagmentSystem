@@ -1,5 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Drawing;
+using System.Text.Json.Serialization;
 
 namespace JobManagmentSystem.Scheduler.Common.Results
 {
@@ -8,9 +9,9 @@ namespace JobManagmentSystem.Scheduler.Common.Results
         public Result()
         {
         }
-
-        public bool Success { get; private set; }
-        public string Error { get; set; }
+        
+        public bool Success { get;  set; }
+        public string Error { get;  set; }
 
         public bool Failure => !Success;
 
@@ -59,6 +60,10 @@ namespace JobManagmentSystem.Scheduler.Common.Results
 
     public class Result<T> : Result
     {
+        public Result()
+        {
+        }
+
         private T _value;
 
         public T Value
@@ -69,7 +74,7 @@ namespace JobManagmentSystem.Scheduler.Common.Results
 
                 return _value;
             }
-            [param: AllowNull] private set => _value = value;
+            [param: AllowNull] set => _value = value;
         }
 
         protected internal Result([AllowNull] T value, bool success, string error)

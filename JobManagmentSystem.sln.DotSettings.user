@@ -1,21 +1,4 @@
 ﻿<wpf:ResourceDictionary xml:space="preserve" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:s="clr-namespace:System;assembly=mscorlib" xmlns:ss="urn:shemas-jetbrains-com:settings-storage-xaml" xmlns:wpf="http://schemas.microsoft.com/winfx/2006/xaml/presentation">
-	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=e89bbc80_002D82de_002D4163_002D9428_002Ddfcbdd4cddf2/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="Unschedule_ReturnsSuccessStatusCode" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
-  &lt;Or&gt;&#xD;
-    &lt;Or&gt;&#xD;
-      &lt;Or&gt;&#xD;
-        &lt;TestAncestor&gt;&#xD;
-          &lt;TestId&gt;xUnit::85E81598-420B-4D0C-BBB0-CBD570E728AF::.NETCoreApp,Version=v3.1::Scheduler.IntegrationTests.Controllers.Jobs.Unschedule.Unschedule_ReturnsSuccessStatusCode&lt;/TestId&gt;&#xD;
-        &lt;/TestAncestor&gt;&#xD;
-        &lt;TestAncestor&gt;&#xD;
-          &lt;TestId&gt;xUnit::85E81598-420B-4D0C-BBB0-CBD570E728AF::.NETCoreApp,Version=v3.1::Scheduler.IntegrationTests.Controllers.Jobs.Schedule.Schedule_ReturnsSuccessStatusCode&lt;/TestId&gt;&#xD;
-        &lt;/TestAncestor&gt;&#xD;
-      &lt;/Or&gt;&#xD;
-      &lt;TestAncestor&gt;&#xD;
-        &lt;TestId&gt;xUnit::85E81598-420B-4D0C-BBB0-CBD570E728AF::.NETCoreApp,Version=v3.1::Scheduler.IntegrationTests.Controllers.Jobs.Schedule.Schedule_ReturnsNotFoundStatusCode&lt;/TestId&gt;&#xD;
-      &lt;/TestAncestor&gt;&#xD;
-    &lt;/Or&gt;&#xD;
-    &lt;TestAncestor&gt;&#xD;
-      &lt;TestId&gt;xUnit::85E81598-420B-4D0C-BBB0-CBD570E728AF::.NETCoreApp,Version=v3.1::Scheduler.IntegrationTests.Controllers.Jobs.Get.Get_ReturnsSuccessStatusCode&lt;/TestId&gt;&#xD;
-    &lt;/TestAncestor&gt;&#xD;
-  &lt;/Or&gt;&#xD;
+	<s:String x:Key="/Default/Environment/UnitTesting/UnitTestSessionStore/Sessions/=f20a2d6b_002D7b1c_002D45b4_002D9ad8_002Db4c28acee936/@EntryIndexedValue">&lt;SessionState ContinuousTestingMode="0" Name="All tests from &amp;lt;Tests&amp;gt;\&amp;lt;Scheduler.IntegrationTests&amp;gt;" xmlns="urn:schemas-jetbrains-com:jetbrains-ut-session"&gt;&#xD;
+  &lt;Project Location="C:\Users\Borod\RiderProjects\JobManagmentSystem\Scheduler.IntegrationTests" Presentation="&amp;lt;Tests&amp;gt;\&amp;lt;Scheduler.IntegrationTests&amp;gt;" /&gt;&#xD;
 &lt;/SessionState&gt;</s:String></wpf:ResourceDictionary>
